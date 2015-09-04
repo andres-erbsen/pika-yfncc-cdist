@@ -1,1 +1,15 @@
 __file /etc/cdist-configured
+
+case "$__target_host" in
+   192.168.1.1)
+	# # TP-LINK WDR43000 access points
+        # ## Manual Preparation
+        # - install openwrt
+        # - ssh keys in /etc/dropbear/authorized_keys
+        # - `opkg update && opkg install coreutils-stat && opkg install coreutils-cksum`
+        __package coreutils
+        __package coreutils-stat
+        __package coreutils-cksum
+        __uci_key_value object --config network --section loopback --option foo --value bar
+   ;;
+esac

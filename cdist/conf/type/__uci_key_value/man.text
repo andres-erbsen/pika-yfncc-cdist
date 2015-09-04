@@ -16,8 +16,6 @@ file managed by UCI.
 
 REQUIRED PARAMETERS
 -------------------
-config::
-   Target UCI config.
 section::
    Target config section.
 option::
@@ -26,6 +24,8 @@ option::
 
 OPTIONAL PARAMETERS
 -------------------
+config::
+   Target UCI config. Defaults to object_id.
 value::
    The value to set for the option; must be specified unless state is set to "absent".
 state::

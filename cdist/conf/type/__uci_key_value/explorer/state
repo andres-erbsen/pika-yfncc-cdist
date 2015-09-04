@@ -20,12 +20,14 @@
 # along with cdist. If not, see <http://www.gnu.org/licenses/>.
 #
 
+export id="$(cat "$__object/parameter/config" 2>/dev/null \
+   || echo "$__object_id")"
 export config="$(cat "$__object/parameter/config")"
 export section="$(cat "$__object/parameter/section")"
 export option="$(cat "$__object/parameter/option")"
 export value="$(cat "$__object/parameter/value")"
 
-export current="$(uci -q "$config"."$section"."$option")"
+export current="$(uci -q get "$config"."$section"."$option")"
 
 case "$current" in
     "")
@@ -38,12 +40,3 @@ case "$current" in
 	echo "wrongvalue"
     ;;
 esac
-
-
-
-if [$current == ""]; then
-	echo "absent"
-else
-	if 
-	echo "present"
-fi

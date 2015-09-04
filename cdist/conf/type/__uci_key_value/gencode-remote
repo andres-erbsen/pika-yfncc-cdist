@@ -35,7 +35,7 @@ case "$state_should" in
             absent)
                 # nothing to do
             ;;
-            present)
+            present|wrongvalue)
                 echo "remove" >> "$__messages_out"
             ;;
             *)
@@ -48,9 +48,11 @@ case "$state_should" in
         case "$state_is" in
             absent)
                 echo "insert" >> "$__messages_out"
-            wrongvalue)
+	    ;;
+	    wrongvalue)
                 echo "change" >> "$__messages_out"
-            present)
+	    ;;
+	    present)
                 # nothing to do
             ;;
             *)
