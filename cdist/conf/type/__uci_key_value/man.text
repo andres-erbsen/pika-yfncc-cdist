@@ -13,19 +13,10 @@ DESCRIPTION
 This cdist type allows you to change values in a key value based config
 file managed by UCI.
 
-
-REQUIRED PARAMETERS
--------------------
-section::
-   Target config section.
-option::
-   The option to set.
-
-
 OPTIONAL PARAMETERS
 -------------------
-config::
-   Target UCI config. Defaults to object_id.
+option::
+   The fully qualified name of the option to set, in the format "config.section.option". Defaults to object_id.
 value::
    The value to set for the option; must be specified unless state is set to "absent".
 state::

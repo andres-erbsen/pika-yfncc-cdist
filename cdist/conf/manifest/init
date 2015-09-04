@@ -10,6 +10,6 @@ case "$__target_host" in
         __package coreutils
         __package coreutils-stat
         __package coreutils-cksum
-        __uci_key_value object --config network --section loopback --option foo --value bar
+        __uci_key_value network.loopback.foo --value bar
    ;;
 esac
