@@ -21,6 +21,7 @@ case "$__target_host" in
 	__uci_key_value network.lan.dns --value 18.71.0.151
   	
 	__uci_key_value network.wan --state absent
+	__uci_key_value network.wan6 --state absent
 	__uci_key_value network.@switch_vlan[1] --state absent
 	__uci_key_value network.@switch_vlan[0].device --state absent
 	__uci_key_value network.@switch_vlan[0].ports --value "0t 1 2 3 4 5"
