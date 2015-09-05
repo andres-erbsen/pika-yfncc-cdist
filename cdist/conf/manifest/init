@@ -41,6 +41,11 @@ cat "$(grep "^$1:" /etc/passwd | cut -d: -f6)/.ssh/authorized_keys" 2>/dev/null 
 EOF
         __key_value AuthorizedKeysCommand --value /etc/ssh/authorized_keys_command --file /etc/ssh/sshd_config --delimiter ' '
 
+        # ## NTP
+        __key_value servers --value pool.ntp.org --file /etc/ntpd.conf --delimiter ' '
+        __key_value constraints --value '"https://www.google.com/"' --file /etc/ntpd.conf --delimiter ' '
+        __key_value ntpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
+
         # ## dhcp server
         # this dhcp server MUST be isoleted from the MIT network, otherwise
         # arbitrary computer badness and IS&T disapproval will result.
@@ -60,7 +65,7 @@ EOF
         ## resflash
         # this section syncs changes to disk and must this be last
         __key_value save_etc --file /etc/resflash.conf --delimiter '=' \
-            --value "'resolv.conf myname mygate hostname.rl0 ssh/sshd_config ssh/authorized_keys_command ssh/ssh_host_ecdsa_key ssh/ssh_host_ed25519_key ssh/ssh_host_ed25519_key.pub ssh/ssh_host_rsa_key.pub ssh/ssh_host_rsa_key ssh/ssh_host_ecdsa_key.pub rc.conf.local dhcpd.conf'"
+            --value "'resolv.conf myname mygate hostname.rl0 ssh/sshd_config ssh/authorized_keys_command ssh/ssh_host_ecdsa_key ssh/ssh_host_ed25519_key ssh/ssh_host_ed25519_key.pub ssh/ssh_host_rsa_key.pub ssh/ssh_host_rsa_key ssh/ssh_host_ecdsa_key.pub rc.conf.local ntpd.conf dhcpd.conf'"
         __key_value save_var --file /etc/resflash.conf --delimiter '=' \
             --value "'db/host.random'"
         __resflash_save
