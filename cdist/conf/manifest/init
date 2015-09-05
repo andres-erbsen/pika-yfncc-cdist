@@ -30,8 +30,8 @@ case "$__target_host" in
 
 	__uci_key_value dhcp --state absent
 
-	___uci_key_value wireless.radio1.channel --value 165
-
+	__uci_key_value wireless.radio1.channel --value 165
+    ;;
     "pika-guest-manager.mit.edu") # # dhcp server for the guest network. OpenBSD resflash.
     export CDIST_ORDER_DEPENDENCY=on
         # NB! make sure to point resflash to all persistent configuration!
