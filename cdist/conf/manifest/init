@@ -7,9 +7,24 @@ case "$__target_host" in
         # - install openwrt
         # - ssh keys in /etc/dropbear/authorized_keys
         # - `opkg update && opkg install coreutils-stat && opkg install coreutils-cksum`
-        __package coreutils
-        __package coreutils-stat
-        __package coreutils-cksum
-        __uci_key_value network.loopback.foo --value bar
-   ;;
+        # __package coreutils
+        # __package coreutils-stat
+        # __package coreutils-cksum
+        __uci_key_value system.hostname --value "pika-guest-ap-murph"
+	
+	__uci_key_value network.lan.proto --value static
+	__uci_key_value network.lan.ipaddr --value 18.102.214.14
+	__uci_key_value network.lan.netmask --value 255.255.255.0
+	__uci_key_value network.lan.gateway --value 18.102.214.1
+	__uci_key_value network.lan.dns --value 18.71.0.151
+  	
+	__uci_key_value network.wan --state absent
+	__uci_key_value network.@switch_vlan[1] --state absent
+	__uci_key_value network.@switch_vlan[0].device --state absent
+	__uci_key_value network.@switch_vlan[0].ports --value "0t 1 2 3 4 5"
+
+	__uci_key_value wireless.@wifi-iface.ssid --value "openwireless.pikans.org"
+
+	__uci_key_value dhcp --state absent
+  ;;
 esac
