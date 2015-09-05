@@ -23,7 +23,7 @@ destination="/$__object_id"
 # nothing to work with, nothing we could do
 [ -e "$destination" ] || exit 0
 
-os=$("$__explorer/os")
+os=$(sh "$__explorer/os")
 case "$os" in
    "freebsd"|"openbsd")
       # FIXME: should be something like this based on man page, but can not test
