@@ -3,7 +3,7 @@
 __file /etc/cdist-configured
 
 case "$__target_host" in
-   192.168.1.1) #"pika-guest-ap-murph")
+   pika-guest-ap-murph.mit.edu) #"pika-guest-ap-murph")
 	# # TP-LINK WDR43000 access points
         # ## Manual Preparation
         # - install openwrt
