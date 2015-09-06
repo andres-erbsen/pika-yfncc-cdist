@@ -3,7 +3,7 @@
 __file /etc/cdist-configured
 
 case "$__target_host" in
-   pika-guest-ap-murph.mit.edu) #"pika-guest-ap-murph")
+   pika-guest-ap-murph.mit.edu)
 	# # TP-LINK WDR43000 access points
         # ## Manual Preparation
         # - install openwrt
@@ -13,8 +13,16 @@ case "$__target_host" in
         __package coreutils-stat
         __package coreutils-cksum
 
-    __ssh_authorized_key andreser@ashryn --file /etc/dropbear/authorized_keys  \
-       --key 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGVwevx+29U+pVCLAYlXRVphBvbA50L86JMZuHsj581s'
+
+	export CDIST_ORDER_DEPENDENCY=on
+        __ssh_authorized_key andreser@ashryn --file /etc/dropbear/authorized_keys  \
+           --key 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGVwevx+29U+pVCLAYlXRVphBvbA50L86JMZuHsj581s'
+        __ssh_authorized_key jadep@jadep-MacBookPro --file /etc/dropbear/authorized_keys  \
+           --key 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDMv6DHO/SwyceEJ8hHbkUs66ees8IZ76joxuAbZtQdoXnB6DuofVzC/6Fl4lNEFWJhiZ02zzOm7IUTwq8pg/hrmdYy6fIsQ1mc0+41PTzqU0uNx7Vf6ZspAynk4V/ae6/bY9pbE8lrRPGyUClAbASixc/KDW2y7m5Q8hmeV06ijd6qMMeSxvH7AntvrD73nhiYck/xKNHl/qxPw03MB6t5/Hdrd+71YbprgPAi9NWnLyxhumbRm2ISoAl3+dI9gowiy0mDP9uqSTkUnjuwPzTHOMv1S97yhmbMBUWXrC7uVxhTJphIPwD8/G4dKiUXSz2GrIn/3J8ARHBtck6TFfOX'
+        __uci_key_value dropbear.PasswordAuth --value off	
+
+    unset CDIST_ORDER_DEPENDENCY
+
 
 	__start_on_boot firewall --state absent
 	__start_on_boot uhttpd --state absent
@@ -51,8 +59,12 @@ case "$__target_host" in
 	__uci_key_value network.@switch_vlan[1].vid --value 2
 	
 	__uci_key_value wireless.@wifi-iface[0].network --value 'lan wan'
+	__uci_key_value wireless.@wifi-iface[0].ssid --value 'pika-livingroom'
 	__uci_key_value wireless.@wifi-iface[1].network --value 'lan wan'
+	__uci_key_value wireless.@wifi-iface[1].ssid --value 'pika-livingroom'
+	__uci_key_value wireless.radio0.channel --value 11
 	__uci_key_value wireless.radio0.disabled --state absent
+	__uci_key_value wireless.radio1.channel --value 165
 	__uci_key_value wireless.radio1.disabled --state absent
     ;;
     "pika-guest-manager.mit.edu") # # dhcp server for the guest network. OpenBSD resflash.
