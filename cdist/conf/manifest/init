@@ -108,15 +108,18 @@ EOF
 
     "lesbian-baby-seagull-goddess.mit.edu")
         __package vim
-        __package openssh-server
-        __start_on_boot ssh
-        __key_value HostKey --value /etc/ssh/ssh_host_ed25519_key --file /etc/ssh/sshd_config --delimiter ' '
-        __key_value PubkeyAuthentication --value yes --file /etc/ssh/sshd_config --delimiter ' '
-        __key_value PasswordAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
-        __key_value ChallengeResponseAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
-        __ssh_authorized_key andreser@ashryn --file "/root/.ssh/autorized_keys" \
-           --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ0280oqiQuzpiFGS1Em+CN2zuSNUHkAauXp9e5oxT3/ andreser@ashryn"
+        __package sudo
 
+        export CDIST_ORDER_DEPENDENCY=on
+            __package openssh-server
+            __key_value HostKey --value /etc/ssh/ssh_host_ed25519_key --file /etc/ssh/sshd_config --delimiter ' '
+            __key_value PubkeyAuthentication --value yes --file /etc/ssh/sshd_config --delimiter ' '
+            __key_value PasswordAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+            __key_value ChallengeResponseAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+            __ssh_authorized_key andreser@ashryn --file "/root/.ssh/autorized_keys" \
+               --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ0280oqiQuzpiFGS1Em+CN2zuSNUHkAauXp9e5oxT3/ andreser@ashryn"
+            __start_on_boot ssh
+        unset CDIST_ORDER_DEPENDENCY
     ;;
 
 esac
