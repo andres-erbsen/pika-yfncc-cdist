@@ -13,7 +13,14 @@ case "$__target_host" in
         __package coreutils-stat
         __package coreutils-cksum
 
+    __ssh_authorized_key andreser@ashryn --file /etc/dropbear/authorized_keys  \
+       --key 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGVwevx+29U+pVCLAYlXRVphBvbA50L86JMZuHsj581s'
+
 	__start_on_boot firewall --state absent
+	__start_on_boot uhttpd --state absent
+	__start_on_boot telnet --state absent
+	__start_on_boot odhcpd --state absent
+	__start_on_boot dnsmasq --state absent
 	
 	__uci_key_value system.hostname --value "pika-guest-ap-murph"
 	
