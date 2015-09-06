@@ -20,8 +20,11 @@ case "$__target_host" in
 	__uci_key_value dhcp.lan.limit --state absent	
 	__uci_key_value dhcp.lan.leasetime --state absent
 
-	__uci_key_value firewall.forwarding.dest --value lan
-	__uci_key_value firewall.forwarding.src --value wan
+	export CDIST_ORDER_DEPENDENCY=on
+	__uci_add_section firewall.@forwarding[1]
+	__uci_key_value firewall.@forwarding[1].dest --value lan
+	__uci_key_value firewall.@forwarding[1].src --value wan
+	unset CDIST_ORDER_DEPENDENCY
 
 	__uci_key_value network.wan._orig_ifname --value 'eth0.2'
 	__uci_key_value network.wan._orig_bridge --value false
@@ -37,8 +40,10 @@ case "$__target_host" in
 	__uci_key_value network.@switch_vlan[1].ports --value '0t 1 2 3 4 5'
 	__uci_key_value network.@switch_vlan[1].vid --value 2
 	
-	__uci_key_value wireless.@wifi-iface[0].network --value lan
-	__uci_key_value wireless.@wifi-iface[1].network --value lan
+	__uci_key_value wireless.@wifi-iface[0].network --value 'lan wan'
+	__uci_key_value wireless.@wifi-iface[1].network --value 'lan wan'
+	__uci_key_value wireless.radio0.disabled --state absent
+	__uci_key_value wireless.radio1.disabled --state absent
     ;;
     "pika-guest-manager.mit.edu") # # dhcp server for the guest network. OpenBSD resflash.
     export CDIST_ORDER_DEPENDENCY=on
