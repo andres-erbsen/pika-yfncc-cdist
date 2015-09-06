@@ -1,0 +1,22 @@
+cdist-type__uci_add_section(7)
+========================
+
+NAME
+----
+cdist-type__uci_add_section - Add config sections to files using uci
+
+
+DESCRIPTION
+-----------
+This cdist type allows the addition of sections to a config
+file managed by UCI.
+
+OPTIONAL PARAMETERS
+-------------------
+section::
+   The config and type of the new section, in the format "config.type". Defaults to object_id.
+
+MESSAGES
+--------
+insert::
+    Added key and value
