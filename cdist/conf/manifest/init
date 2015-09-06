@@ -3,7 +3,7 @@
 __file /etc/cdist-configured
 
 case "$__target_host" in
-   192.168.1.1)
+   192.168.1.1) #"pika-guest-ap-murph")
 	# # TP-LINK WDR43000 access points
         # ## Manual Preparation
         # - install openwrt
@@ -12,7 +12,10 @@ case "$__target_host" in
         __package coreutils
         __package coreutils-stat
         __package coreutils-cksum
-        # __uci_key_value system.hostname --value "pika-guest-ap-murph"
+
+	__start_on_boot firewall --state absent
+	
+	__uci_key_value system.hostname --value "pika-guest-ap-murph"
 	
 	__uci_key_value dhcp.lan.ignore --value 1	
 	__uci_key_value dhcp.lan.ra_management --value 1	
