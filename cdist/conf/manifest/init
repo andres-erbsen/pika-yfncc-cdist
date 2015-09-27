@@ -112,6 +112,8 @@ option  domain-name-servers 18.71.0.151, 18.70.0.160, 18.72.0.3, 8.8.8.8, 8.8.4.
 subnet 18.102.214.0 netmask 255.255.255.0 {
         option routers 18.102.214.1;
         range 18.102.214.64 18.102.214.95;
+        default-lease-time 3600;
+        max-lease-time 3600;
 }
 EOF
 
