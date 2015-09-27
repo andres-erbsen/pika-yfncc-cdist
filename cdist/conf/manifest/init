@@ -15,10 +15,13 @@ case "$__target_host" in
 
 
 	export CDIST_ORDER_DEPENDENCY=on
-        __ssh_authorized_key andreser --file /etc/dropbear/authorized_keys --noparent --nofile \
-            --key 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGVwevx+29U+pVCLAYlXRVphBvbA50L86JMZuHsj581s andreser' \
-            --key 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDMv6DHO/SwyceEJ8hHbkUs66ees8IZ76joxuAbZtQdoXnB6DuofVzC/6Fl4lNEFWJhiZ02zzOm7IUTwq8pg/hrmdYy6fIsQ1mc0+41PTzqU0uNx7Vf6ZspAynk4V/ae6/bY9pbE8lrRPGyUClAbASixc/KDW2y7m5Q8hmeV06ijd6qMMeSxvH7AntvrD73nhiYck/xKNHl/qxPw03MB6t5/Hdrd+71YbprgPAi9NWnLyxhumbRm2ISoAl3+dI9gowiy0mDP9uqSTkUnjuwPzTHOMv1S97yhmbMBUWXrC7uVxhTJphIPwD8/G4dKiUXSz2GrIn/3J8ARHBtck6TFfOX jadep'
-        # __uci_key_value "dropbear.@dropbear[0].PasswordAuth" --value off
+        __ssh_authorized_key andreser --file /etc/dropbear/authorized_keys \
+            --key 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNAw+/J7/SoM4/XNie20lqMlPTxiHhjpA9SMJI/0Xx+qbEnmLQN2G2XZa+HQaqZj/gzpj0xbS4hpoi7qgKaJN0uzjN/F1dhQ7ZvhxvKH10nJEQBTfxdwwUCivIx8TE+TsnB+mNRQsjXcXXdmbB1kHpzlKEqAIqys3QSro/AVmYQ2t7xKRnQK3g1hXosXyPzcGO7G7ag3vGd4bhl0FE8Ib6yfDs/DGZyC9LrV+450mw9sKlkvF14NuCrkK5P5HeTc8MiLXHRuIt8iDnhz8lXpfbnThNic8GDEfjdRAqIsrMSrp19Ofgoni68V36blRbNLLDAO7E60e8/1LF9VJ/7Gar' \
+            --comment andreser
+        __ssh_authorized_key jadep --file /etc/dropbear/authorized_keys \
+            --key 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDMv6DHO/SwyceEJ8hHbkUs66ees8IZ76joxuAbZtQdoXnB6DuofVzC/6Fl4lNEFWJhiZ02zzOm7IUTwq8pg/hrmdYy6fIsQ1mc0+41PTzqU0uNx7Vf6ZspAynk4V/ae6/bY9pbE8lrRPGyUClAbASixc/KDW2y7m5Q8hmeV06ijd6qMMeSxvH7AntvrD73nhiYck/xKNHl/qxPw03MB6t5/Hdrd+71YbprgPAi9NWnLyxhumbRm2ISoAl3+dI9gowiy0mDP9uqSTkUnjuwPzTHOMv1S97yhmbMBUWXrC7uVxhTJphIPwD8/G4dKiUXSz2GrIn/3J8ARHBtck6TFfOX' \
+            --comment jadep
+        __uci_key_value "dropbear.@dropbear[0].PasswordAuth" --value off
     unset CDIST_ORDER_DEPENDENCY
 
 
