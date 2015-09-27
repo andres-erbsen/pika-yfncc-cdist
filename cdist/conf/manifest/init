@@ -64,9 +64,9 @@ case "$__target_host" in
 	__uci_key_value wireless.@wifi-iface[1].network --value 'lan wan'
 	__uci_key_value wireless.@wifi-iface[1].ssid --value 'pika-livingroom'
 	__uci_key_value wireless.radio0.channel --value 11
-	__uci_key_value wireless.radio0.disabled --state absent
+	__uci_key_value wireless.radio0.disabled --value 1
 	__uci_key_value wireless.radio1.channel --value 165
-	__uci_key_value wireless.radio1.disabled --state absent
+	__uci_key_value wireless.radio1.disabled --value 1
     ;;
     "pika-guest-manager.mit.edu") # # dhcp server for the guest network. OpenBSD resflash.
     export CDIST_ORDER_DEPENDENCY=on
