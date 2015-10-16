@@ -147,6 +147,8 @@ EOF
 
         __ssh_authorized_key andreser@ashryn --file "/root/.ssh/autorized_keys" \
            --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcPzxnAu7oZwL0gh/JK+4jVbihCVO0FprPHvQuqX1hl andreser@ashryn" 
+	__ssh_authorized_key jadep --file "/root/.ssh/autorized_keys" \
+           --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAGY9vBwf2B1SSPxL/XUD8aou9ROR7nXUt+LBSp9kfRI jadep@jadep-MacBookPro" 
 
         __package openntpd
 
