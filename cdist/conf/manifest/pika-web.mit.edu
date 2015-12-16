@@ -1,0 +1,29 @@
+## utils
+export CDIST_ORDER_DEPENDENCY=on
+__line PKG_PATH --file /root/.profile --line 'export PKG_PATH=http://mirrors.mit.edu/pub/OpenBSD/$(uname -r)/packages/$(machine -a)/'
+#__package vim
+unset CDIST_ORDER_DEPENDENCY
+
+# ## network
+echo 'inet 18.102.214.17 255.255.255.0' | __file /etc/hostname.em0 --source -
+echo '18.102.214.1' | __file /etc/mygate --source -
+echo -e 'lookup file bind\nnameserver 18.72.0.3\nnameserver 18.70.0.160' | __file /etc/resolv.conf --source -
+__hostname
+
+# ## ssh
+__key_value HostKey --value /etc/ssh/ssh_host_ed25519_key --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PubkeyAuthentication --value yes --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PasswordAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+__key_value ChallengeResponseAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PermitRootLogin --value prohibit-password --file /etc/ssh/sshd_config --delimiter ' '
+
+__ssh_authorized_keys root \
+   --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHAzOGKaN0OBHo0xmnki83By1M0MSMu4ueqtRB6oTNw+ yfncc@ashryn"
+
+# ## NTP
+__key_value servers --value pool.ntp.org --file /etc/ntpd.conf --delimiter ' '
+__key_value constraints --value '"https://www.google.com/"' --file /etc/ntpd.conf --delimiter ' '
+__key_value ntpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
+
+## HTTPS
+
