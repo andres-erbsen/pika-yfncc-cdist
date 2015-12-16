@@ -1,0 +1,23 @@
+__package vim
+__package sudo
+__package tree
+__package rsync
+__package curl
+__package sshfs
+
+# TODO: refactor this block
+__package openssh-server
+__key_value HostKey --value /etc/ssh/ssh_host_ed25519_key --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PubkeyAuthentication --value yes --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PasswordAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+__key_value ChallengeResponseAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+__start_on_boot ssh
+
+__ssh_authorized_key andreser@ashryn --file "/root/.ssh/autorized_keys" \
+   --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcPzxnAu7oZwL0gh/JK+4jVbihCVO0FprPHvQuqX1hl andreser@ashryn"
+__ssh_authorized_key jadep --file "/root/.ssh/autorized_keys" \
+   --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAGY9vBwf2B1SSPxL/XUD8aou9ROR7nXUt+LBSp9kfRI jadep@jadep-MacBookPro"
+
+__package openntpd
+
+# curl https://install.sandstorm.io/ | bash

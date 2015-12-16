@@ -1,0 +1,57 @@
+export CDIST_ORDER_DEPENDENCY=on
+# NB! make sure to point resflash to all persistent configuration!
+
+# ## network
+echo 'inet 18.102.214.13 255.255.255.0 NONE' | __file /etc/hostname.rl0 --source -
+echo '18.102.214.1' | __file /etc/mygate --source -
+__hostname
+
+# ## ssh
+__key_value HostKey --value /etc/ssh/ssh_host_ed25519_key --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PubkeyAuthentication --value yes --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PasswordAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+__key_value ChallengeResponseAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PermitRootLogin --value prohibit-password --file /etc/ssh/sshd_config --delimiter ' '
+
+# ### keys
+# The keys are in /etc because resflash does not persist home directories.
+__file /etc/ssh/authorized_keys_command --mode 755 --source - << EOF
+#!/bin/sh
+set -e
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA8HcOuc+0hVcc0Ql87QvyUNz8euGKmp9I4rrxc3tlx2 andreser@ashryn'
+cat "$(grep "^$1:" /etc/passwd | cut -d: -f6)/.ssh/authorized_keys" 2>/dev/null || true
+EOF
+__key_value AuthorizedKeysCommand --value /etc/ssh/authorized_keys_command --file /etc/ssh/sshd_config --delimiter ' '
+
+# ## NTP
+__key_value servers --value pool.ntp.org --file /etc/ntpd.conf --delimiter ' '
+__key_value constraints --value '"https://www.google.com/"' --file /etc/ntpd.conf --delimiter ' '
+__key_value ntpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
+
+# ## dhcp server
+# this dhcp server MUST be isoleted from the MIT network, otherwise
+# arbitrary computer badness and IS&T disapproval will result.
+# Currently, the isolation is performed through UDP port filtering on
+# Netgear switch 1 port 48.
+__key_value dhcpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
+__file /etc/dhcpd.conf --source - << EOF
+option  domain-name "mit.edu";
+option  domain-name-servers 18.71.0.151, 18.70.0.160, 18.72.0.3, 8.8.8.8, 8.8.4.4;
+
+subnet 18.102.214.0 netmask 255.255.255.0 {
+option routers 18.102.214.1;
+range 18.102.214.64 18.102.214.95;
+default-lease-time 3600;
+max-lease-time 3600;
+}
+EOF
+
+## resflash
+# this section syncs changes to disk and must this be last
+__key_value save_etc --file /etc/resflash.conf --delimiter '=' \
+    --value "'resolv.conf myname mygate hostname.rl0 ssh/sshd_config ssh/authorized_keys_command ssh/ssh_host_ecdsa_key ssh/ssh_host_ed25519_key ssh/ssh_host_ed25519_key.pub ssh/ssh_host_rsa_key.pub ssh/ssh_host_rsa_key ssh/ssh_host_ecdsa_key.pub rc.conf.local ntpd.conf dhcpd.conf'"
+__key_value save_var --file /etc/resflash.conf --delimiter '=' \
+    --value "'db/host.random'"
+__resflash_save
+
+unset CDIST_ORDER_DEPENDENCY
