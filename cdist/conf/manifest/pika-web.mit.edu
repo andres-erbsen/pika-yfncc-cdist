@@ -1,8 +1,7 @@
-## utils
-export CDIST_ORDER_DEPENDENCY=on
+# ## machine
+__link /etc/localtime --source /usr/share/zoneinfo/US/Eastern --type symbolic
 __line PKG_PATH --file /root/.profile --line 'export PKG_PATH=http://mirrors.mit.edu/pub/OpenBSD/$(uname -r)/packages/$(machine -a)/'
-#__package vim
-unset CDIST_ORDER_DEPENDENCY
+__package_pkg_openbsd vim --state present --flavor no_x11
 
 # ## network
 echo 'inet 18.102.214.17 255.255.255.0' | __file /etc/hostname.em0 --source -
@@ -18,12 +17,61 @@ __key_value ChallengeResponseAuthentication --value no --file /etc/ssh/sshd_conf
 __key_value PermitRootLogin --value prohibit-password --file /etc/ssh/sshd_config --delimiter ' '
 
 __ssh_authorized_keys root \
-   --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHAzOGKaN0OBHo0xmnki83By1M0MSMu4ueqtRB6oTNw+ yfncc@ashryn"
+   --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHAzOGKaN0OBHo0xmnki83By1M0MSMu4ueqtRB6oTNw+ andreser@ashryn" \
+   --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAGY9vBwf2B1SSPxL/XUD8aou9ROR7nXUt+LBSp9kfRI jadep@jadep-MacBookPro"
 
 # ## NTP
-__key_value servers --value pool.ntp.org --file /etc/ntpd.conf --delimiter ' '
-__key_value constraints --value '"https://www.google.com/"' --file /etc/ntpd.conf --delimiter ' '
 __key_value ntpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
+__key_value server --value time.mit.edu --file /etc/ntpd.conf --delimiter ' '
+__key_value servers --value pool.ntp.org --file /etc/ntpd.conf --delimiter ' '
+__line ntpd-constraint --line 'constraint from "https://www.google.com/"' --file /etc/ntpd.conf
 
-## HTTPS
+# ## Web
+__package_pkg_openbsd git
+__git /var/www/htdocs/pikans.org --source https://github.com/jadephilipoom/pika-website
+__key_value httpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
 
+# NB: httpd will FAIL TO RUN if there is no certificate present -- disable the
+# tls server for initial invocation of letsencrypt.
+
+__file /etc/httpd.conf --source - <<'EOF'
+server pikans.org {
+        listen on * port 80
+
+        location "/.well-known/acme-challenge/*" { 
+                root strip 2
+                root "/letsencryptsh"
+        }
+        location "*" {block return 301 "https://$SERVER_NAME$REQUEST_URI"}
+}
+server pikans.org {
+	listen on * tls port 443
+	root "htdocs/pikans.org"
+        tls {
+            certificate "/etc/letsencrypt.sh/certs/pikans.org/fullchain.pem"
+            key "/etc/letsencrypt.sh/certs/pikans.org/privkey.pem"
+        }
+}
+EOF
+
+# ## LetsEncrypt
+
+__package_pkg_openbsd bash
+export CDIST_ORDER_DEPENDENCY=on
+	__user letsencryptsh --home /etc/letsencrypt.sh
+	__directory /etc/letsencrypt.sh --owner letsencryptsh
+	__git /etc/letsencrypt.sh/impl --source https://github.com/andres-erbsen/letsencrypt.sh.git
+	__directory /var/www/letsencryptsh --parents --recursive --owner letsencryptsh --mode u=rwx,go=rX
+	__file /etc/letsencrypt.sh/config.sh --mode u=rwx,go=r --source - <<'EOF'
+#!/usr/bin/env bash
+WELLKNOWN=/var/www/letsencryptsh 
+PRIVATE_KEY_RENEW="yes"
+CONTACT_EMAIL="yfncc@mit.edu"
+EOF
+	__file /etc/letsencrypt.sh/domains.txt --mode u=rwx,go=r --source - <<'EOF'
+pikans.org www.pikans.org
+EOF
+unset export CDIST_ORDER_DEPENDENCY
+
+__cron renew-certs --user letsencryptsh --command "/etc/letsencrypt.sh/impl/letsencrypt.sh --cron" \
+   --hour 23 --minute 30 --day_of_week 3
