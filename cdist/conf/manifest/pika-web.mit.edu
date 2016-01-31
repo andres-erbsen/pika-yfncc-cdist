@@ -29,6 +29,7 @@ __line ntpd-constraint --line 'constraint from "https://www.google.com/"' --file
 # ## Web
 __package_pkg_openbsd git
 __git /var/www/htdocs/pikans.org --source https://github.com/andres-erbsen/pika-website
+# USAGE: ssh pika-web.mit.edu git -C /var/www/htdocs/pikans.org pull --rebase
 __key_value httpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
 
 # NB: httpd will FAIL TO RUN if there is no certificate present -- disable the
