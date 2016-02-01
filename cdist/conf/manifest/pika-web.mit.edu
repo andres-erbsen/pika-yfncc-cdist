@@ -30,6 +30,7 @@ __line ntpd-constraint --line 'constraint from "https://www.google.com/"' --file
 __package_pkg_openbsd git
 __git /var/www/htdocs/pikans.org --source https://github.com/andres-erbsen/pika-website
 # USAGE: ssh pika-web.mit.edu git -C /var/www/htdocs/pikans.org pull --rebase
+# ALTERNATIVELY: `( cd /var/www/htdocs/pikans.org && git config receive.denyCurrentBranch updateInstead ) and then use `git push root@pika-web.mit.edu:/var/www/htdocs/pikans.org`
 __key_value httpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
 
 # NB: httpd will FAIL TO RUN if there is no certificate present -- disable the
