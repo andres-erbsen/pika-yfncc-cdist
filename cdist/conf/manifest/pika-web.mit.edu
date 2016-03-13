@@ -75,5 +75,9 @@ pikans.org www.pikans.org
 EOF
 unset export CDIST_ORDER_DEPENDENCY
 
-__cron renew-certs --user letsencryptsh --command "/etc/letsencrypt.sh/impl/letsencrypt.sh --cron" \
+__file /etc/doas.conf --source - <<'EOF'
+permit nopass letsencryptsh as root cmd /etc/rc.d/httpd args reload
+EOF
+
+__cron renew-certs --user letsencryptsh --command "/etc/letsencrypt.sh/impl/letsencrypt.sh --cron && doas /etc/rc.d/httpd reload" \
    --hour 23 --minute 30 --day_of_week 3
