@@ -24,7 +24,7 @@ __ssh_authorized_keys root \
 __key_value ntpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
 __key_value server --value time.mit.edu --file /etc/ntpd.conf --delimiter ' '
 __key_value servers --value pool.ntp.org --file /etc/ntpd.conf --delimiter ' '
-__line ntpd-constraint --line 'constraint from "https://www.google.com/"' --file /etc/ntpd.conf
+__line ntpd-constraint --line 'constraints from "https://www.google.com"' --file /etc/ntpd.conf
 
 # ## Web
 __package_pkg_openbsd git
