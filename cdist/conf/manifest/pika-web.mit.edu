@@ -4,7 +4,7 @@ __line PKG_PATH --file /root/.profile --line 'export PKG_PATH=http://mirrors.mit
 __package_pkg_openbsd vim --state present --flavor no_x11
 
 # ## network
-echo 'inet 18.102.214.17 255.255.255.0' | __file /etc/hostname.em0 --source -
+echo -e 'inet 18.102.214.17 255.255.255.0\ninet alias 18.102.214.25 255.255.255.255' | __file /etc/hostname.em0 --source -
 echo '18.102.214.1' | __file /etc/mygate --source -
 echo -e 'lookup file bind\nnameserver 18.72.0.3\nnameserver 18.70.0.160' | __file /etc/resolv.conf --source -
 __hostname
@@ -85,7 +85,17 @@ __cron renew-certs --user letsencryptsh --command "/etc/letsencrypt.sh/impl/lets
 
 # # Wiki
 
-__user wiki --home /home/wiki
 __directory /home/wiki --owner wiki
+__directory /home/wiki/pikawiki --owner wiki
 
 __package_pkg_openbsd ruby --version 2.3.0 --pkg_path http://mirrors.mit.edu/pub/OpenBSD/5.9/packages/amd64
+
+__package_pkg_openbsd icu4c
+
+__user wiki --home /home/wiki
+
+# MANUALLY: su wiki
+# MANUALLY: cd
+# MANUALLY: gem install --user-install --no-document gollum
+# MANUALLY: cd pikawiki
+# MANUALLY: git init
