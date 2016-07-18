@@ -23,6 +23,9 @@ OPTIONAL PARAMETERS
 name::
     If supplied, use the name and not the object id as the package name.
 
+version::
+    If supplied, use to avoid ambiguity.
+
 flavor::
     If supplied, use to avoid ambiguity.
 
