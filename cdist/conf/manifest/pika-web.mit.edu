@@ -81,3 +81,11 @@ EOF
 
 __cron renew-certs --user letsencryptsh --command "/etc/letsencrypt.sh/impl/letsencrypt.sh --cron && doas /etc/rc.d/httpd reload" \
    --hour 23 --minute 30 --day_of_week 3
+
+
+# # Wiki
+
+__user wiki --home /home/wiki
+__directory /home/wiki --owner wiki
+
+__package_pkg_openbsd ruby --version 2.3.0 --pkg_path http://mirrors.mit.edu/pub/OpenBSD/5.9/packages/amd64
