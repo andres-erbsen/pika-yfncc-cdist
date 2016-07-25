@@ -38,7 +38,7 @@ __key_value httpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
 
 __file /etc/httpd.conf --source - <<'EOF'
 server pikans.org {
-        listen on * port 80
+        listen on pika-web.mit.edu port 80
 
         location "/.well-known/acme-challenge/*" { 
                 root strip 2
@@ -47,7 +47,7 @@ server pikans.org {
         location "*" {block return 301 "https://$SERVER_NAME$REQUEST_URI"}
 }
 server pikans.org {
-	listen on * tls port 443
+	listen on pika-web.mit.edu tls port 443
 	root "htdocs/pikans.org"
         tls {
             certificate "/etc/letsencrypt.sh/certs/pikans.org/fullchain.pem"
@@ -71,7 +71,7 @@ PRIVATE_KEY_RENEW="yes"
 CONTACT_EMAIL="yfncc@mit.edu"
 EOF
 	__file /etc/letsencrypt.sh/domains.txt --mode u=rwx,go=r --source - <<'EOF'
-pikans.org www.pikans.org
+pikans.org www.pikans.org pika-web.mit.edu
 EOF
 unset export CDIST_ORDER_DEPENDENCY
 
@@ -93,6 +93,56 @@ __package_pkg_openbsd ruby --version 2.3.0 --pkg_path http://mirrors.mit.edu/pub
 __package_pkg_openbsd icu4c
 
 __user wiki --home /home/wiki
+
+__file /home/wiki/listproxy --owner wiki --source "$__manifest/bin/openbsd/listproxy" --mode 755
+cat "$__manifest/pubkeys/mit-client-ca.pem" "$__manifest/pubkeys/startcom-root.pem" | __file /home/wiki/client-ca.pem --owner wiki --mode 644 --source -
+
+__file /home/wiki/gollum.sh --owner wiki --mode 755 --source  - <<'EOF'
+#!/bin/sh
+cd ~/pikawiki
+~/.gem/ruby/2.3/bin/gollum23 --host 127.0.0.1 --port 4567 --config ~/config.rb
+EOF
+
+__file /home/wiki/gollum-proxy.sh --owner wiki --mode 755 --source  - <<'EOF'
+#!/bin/sh
+~/listproxy \
+	-register yfncc@mit.edu \
+	-listenhttps pika-wiki.mit.edu:9443 \
+	-listenhttp pika-wiki.mit.edu:9080 \
+	-authenticate ~/client-ca.pem \
+	-authorize pika-wiki \
+	-proxy http://127.0.0.1:4567/ \
+	-state ~/letsencrypt.cache
+EOF
+
+__file /home/wiki/config.rb --owner wiki --mode 644 --source - <<'EOF'
+class Precious::App
+    before do
+        session['gollum.author'] = {
+            :name       => request.env['HTTP_PROXY_AUTHENTICATED_FULL_NAME'],
+            :email      => request.env['HTTP_PROXY_AUTHENTICATED_EMAIL'],
+        }
+    end
+end
+EOF
+
+__file /etc/pf.conf --source - <<'EOF'
+#	$OpenBSD: pf.conf,v 1.54 2014/08/23 05:49:42 deraadt Exp $
+#
+# See pf.conf(5) and /etc/examples/pf.conf
+
+set skip on lo
+
+block return	# block stateless traffic
+pass		# establish keep-state
+
+# By default, do not permit remote connections to X11
+block return in on ! lo0 proto tcp to port 6000:6010
+
+# pika-wiki.mit.edu is served by user wiki
+match in proto tcp from any to 18.102.214.25 port 80 rdr-to 18.102.214.25 port 9080
+match in proto tcp from any to 18.102.214.25 port 443 rdr-to 18.102.214.25 port 9443
+EOF
 
 # MANUALLY: su wiki
 # MANUALLY: cd
