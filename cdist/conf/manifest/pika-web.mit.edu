@@ -59,14 +59,16 @@ require="__directory/home/web" __git /home/web/pika-website --source https://git
 # USAGE: to update this, change user to `web` and do `git pull --rebase`
 
 require="__directory/home/web" __file /home/web/simple-https-server --owner web --source "$__manifest/bin/openbsd/simple-https-server" --mode 755
-require="__directory/home/web" __file /home/web/run.sh --owner web --mode 755 --source  - <<'EOF'
+require="__directory/home/web __file/home/web/simple-https-server" \
+  __file /home/web/run.sh --owner web --mode 755 --source  - <<'EOF'
 #!/bin/sh
 ~/simple-https-server \
 	-register yfncc@mit.edu \
 	-listenhttps pika-web.mit.edu:8443 \
 	-listenhttp pika-web.mit.edu:8080 \
 	-serve ~/pika-website \
-	-state ~/letsencrypt.cache
+	-state ~/letsencrypt.cache \
+	2>&1 | logger -t web-simple-https-server
 EOF
 
 # # Wiki
@@ -84,24 +86,6 @@ require="__directory/home/wiki" __file /home/wiki/listproxy --owner wiki --sourc
 cat "$__manifest/pubkeys/mit-client-ca.pem" "$__manifest/pubkeys/startcom-root.pem" \
   | require="__directory/home/wiki" __file /home/wiki/client-ca.pem --owner wiki --mode 644 --source -
 
-require="__directory/home/wiki" __file /home/wiki/gollum.sh --owner wiki --mode 755 --source  - <<'EOF'
-#!/bin/sh
-cd ~/pikawiki
-~/.gem/ruby/2.3/bin/gollum23 --host 127.0.0.1 --port 4567 --config ~/config.rb --allow-uploads page
-EOF
-
-require="__directory/home/wiki" __file /home/wiki/gollum-proxy.sh --owner wiki --mode 755 --source  - <<'EOF'
-#!/bin/sh
-~/listproxy \
-	-register yfncc@mit.edu \
-	-listenhttps pika-wiki.mit.edu:9443 \
-	-listenhttp pika-wiki.mit.edu:9080 \
-	-authenticate ~/client-ca.pem \
-	-authorize pika-wiki \
-	-proxy http://127.0.0.1:4567/ \
-	-state ~/letsencrypt.cache
-EOF
-
 require="__directory/home/wiki" __file /home/wiki/config.rb --owner wiki --mode 644 --source - <<'EOF'
 class Precious::App
     before do
@@ -113,6 +97,36 @@ class Precious::App
 end
 EOF
 
+require="__file/home/wiki/config.rb" __file /home/wiki/gollum.sh --owner wiki --mode 755 --source  - <<'EOF'
+#!/bin/sh
+cd ~/pikawiki
+~/.gem/ruby/2.3/bin/gollum23 --host 127.0.0.1 --port 4567 --config ~/config.rb --allow-uploads page \
+	2>&1 | logger -t wiki-gollum
+EOF
+
+require="__file/home/wiki/listproxy __file/home/wiki/client-ca.pem" \
+  __file /home/wiki/gollum-proxy.sh --owner wiki --mode 755 --source  - <<'EOF'
+#!/bin/sh
+~/listproxy \
+	-register yfncc@mit.edu \
+	-listenhttps pika-wiki.mit.edu:9443 \
+	-listenhttp pika-wiki.mit.edu:9080 \
+	-authenticate ~/client-ca.pem \
+	-authorize pika-wiki \
+	-proxy http://127.0.0.1:4567/ \
+	-state ~/letsencrypt.cache \
+	2>&1 | logger -t wiki-listproxy
+EOF
+
+# ## autostart all the things
+#
+require="__file/home/web/run.sh __file/home/wiki/gollum.sh __file/home/wiki/gollum-proxy.sh" \
+  __file /etc/rc.local --owner root --mode 700 --source  - <<'EOF'
+#!/bin/sh
+su web -c /home/web/run.sh &
+su wiki -c /home/wiki/gollum.sh &
+su wiki -c /home/wiki/gollum-proxy.sh &
+EOF
 # MANUALLY: su wiki
 # MANUALLY: cd
 # MANUALLY: gem install --user-install --no-document gollum
