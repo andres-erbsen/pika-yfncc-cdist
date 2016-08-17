@@ -26,105 +26,8 @@ __key_value server --value time.mit.edu --file /etc/ntpd.conf --delimiter ' '
 __key_value servers --value pool.ntp.org --file /etc/ntpd.conf --delimiter ' '
 __line ntpd-constraint --line 'constraints from "https://www.google.com"' --file /etc/ntpd.conf
 
-# ## Web
-__package_pkg_openbsd git
-__git /var/www/htdocs/pikans.org --source https://github.com/andres-erbsen/pika-website
-# USAGE: ssh pika-web.mit.edu git -C /var/www/htdocs/pikans.org pull --rebase
-# ALTERNATIVELY: `( cd /var/www/htdocs/pikans.org && git config receive.denyCurrentBranch updateInstead ) and then use `git push root@pika-web.mit.edu:/var/www/htdocs/pikans.org`
-__key_value httpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
-
-# NB: httpd will FAIL TO RUN if there is no certificate present -- disable the
-# tls server for initial invocation of letsencrypt.
-
-__file /etc/httpd.conf --source - <<'EOF'
-server pikans.org {
-        listen on pika-web.mit.edu port 80
-
-        location "/.well-known/acme-challenge/*" { 
-                root strip 2
-                root "/letsencryptsh"
-        }
-        location "*" {block return 301 "https://$SERVER_NAME$REQUEST_URI"}
-}
-server pikans.org {
-	listen on pika-web.mit.edu tls port 443
-	root "htdocs/pikans.org"
-        tls {
-            certificate "/etc/letsencrypt.sh/certs/pikans.org/fullchain.pem"
-            key "/etc/letsencrypt.sh/certs/pikans.org/privkey.pem"
-        }
-}
-EOF
-
-# ## LetsEncrypt
-
-__package_pkg_openbsd bash
-export CDIST_ORDER_DEPENDENCY=on
-	__user letsencryptsh --home /etc/letsencrypt.sh
-	__directory /etc/letsencrypt.sh --owner letsencryptsh
-	__git /etc/letsencrypt.sh/impl --source https://github.com/andres-erbsen/letsencrypt.sh.git
-	__directory /var/www/letsencryptsh --parents --recursive --owner letsencryptsh --mode u=rwx,go=rX
-	__file /etc/letsencrypt.sh/config.sh --mode u=rwx,go=r --source - <<'EOF'
-#!/usr/bin/env bash
-WELLKNOWN=/var/www/letsencryptsh 
-PRIVATE_KEY_RENEW="yes"
-CONTACT_EMAIL="yfncc@mit.edu"
-EOF
-	__file /etc/letsencrypt.sh/domains.txt --mode u=rwx,go=r --source - <<'EOF'
-pikans.org www.pikans.org pika-web.mit.edu
-EOF
-unset export CDIST_ORDER_DEPENDENCY
-
-__file /etc/doas.conf --source - <<'EOF'
-permit nopass letsencryptsh as root cmd /etc/rc.d/httpd args reload
-EOF
-
-__cron renew-certs --user letsencryptsh --command "/etc/letsencrypt.sh/impl/letsencrypt.sh --cron && doas /etc/rc.d/httpd reload" \
-   --hour 23 --minute 30 --day_of_week 3
-
-
-# # Wiki
-
-__directory /home/wiki --owner wiki
-__directory /home/wiki/pikawiki --owner wiki
-
-__package_pkg_openbsd ruby --version 2.3.0 --pkg_path http://mirrors.mit.edu/pub/OpenBSD/5.9/packages/amd64
-
-__package_pkg_openbsd icu4c
-
-__user wiki --home /home/wiki
-
-__file /home/wiki/listproxy --owner wiki --source "$__manifest/bin/openbsd/listproxy" --mode 755
-cat "$__manifest/pubkeys/mit-client-ca.pem" "$__manifest/pubkeys/startcom-root.pem" | __file /home/wiki/client-ca.pem --owner wiki --mode 644 --source -
-
-__file /home/wiki/gollum.sh --owner wiki --mode 755 --source  - <<'EOF'
-#!/bin/sh
-cd ~/pikawiki
-~/.gem/ruby/2.3/bin/gollum23 --host 127.0.0.1 --port 4567 --config ~/config.rb
-EOF
-
-__file /home/wiki/gollum-proxy.sh --owner wiki --mode 755 --source  - <<'EOF'
-#!/bin/sh
-~/listproxy \
-	-register yfncc@mit.edu \
-	-listenhttps pika-wiki.mit.edu:9443 \
-	-listenhttp pika-wiki.mit.edu:9080 \
-	-authenticate ~/client-ca.pem \
-	-authorize pika-wiki \
-	-proxy http://127.0.0.1:4567/ \
-	-state ~/letsencrypt.cache
-EOF
-
-__file /home/wiki/config.rb --owner wiki --mode 644 --source - <<'EOF'
-class Precious::App
-    before do
-        session['gollum.author'] = {
-            :name       => request.env['HTTP_PROXY_AUTHENTICATED_FULL_NAME'],
-            :email      => request.env['HTTP_PROXY_AUTHENTICATED_EMAIL'],
-        }
-    end
-end
-EOF
+# ## packet filtering
+# route incoming connections to user-mode services
 
 __file /etc/pf.conf --source - <<'EOF'
 #	$OpenBSD: pf.conf,v 1.54 2014/08/23 05:49:42 deraadt Exp $
@@ -139,13 +42,77 @@ pass		# establish keep-state
 # By default, do not permit remote connections to X11
 block return in on ! lo0 proto tcp to port 6000:6010
 
+# pika-web.mit.edu is served by user web
+match in proto tcp from any to 18.102.214.17 port 80 rdr-to 18.102.214.17 port 8080
+match in proto tcp from any to 18.102.214.17 port 443 rdr-to 18.102.214.17 port 8443
 # pika-wiki.mit.edu is served by user wiki
 match in proto tcp from any to 18.102.214.25 port 80 rdr-to 18.102.214.25 port 9080
 match in proto tcp from any to 18.102.214.25 port 443 rdr-to 18.102.214.25 port 9443
 EOF
 
+# ## Website
+__user web --home /home/web
+require="__user/web" __directory /home/web --owner web
+
+__package_pkg_openbsd git
+require="__directory/home/web" __git /home/web/pika-website --source https://github.com/andres-erbsen/pika-website --owner web
+# USAGE: to update this, change user to `web` and do `git pull --rebase`
+
+require="__directory/home/web" __file /home/web/simple-https-server --owner web --source "$__manifest/bin/openbsd/simple-https-server" --mode 755
+require="__directory/home/web" __file /home/web/run.sh --owner web --mode 755 --source  - <<'EOF'
+#!/bin/sh
+~/simple-https-server \
+	-register yfncc@mit.edu \
+	-listenhttps pika-web.mit.edu:8443 \
+	-listenhttp pika-web.mit.edu:8080 \
+	-serve ~/pika-website \
+	-state ~/letsencrypt.cache
+EOF
+
+# # Wiki
+
+__user wiki --home /home/wiki
+
+require="__user/wiki" __directory /home/wiki --owner wiki
+require="__directory/home/wiki" __directory /home/wiki/pikawiki --owner wiki
+
+__package_pkg_openbsd ruby --version 2.3.0 --pkg_path http://mirrors.mit.edu/pub/OpenBSD/5.9/packages/amd64
+
+__package_pkg_openbsd icu4c
+
+require="__directory/home/wiki" __file /home/wiki/listproxy --owner wiki --source "$__manifest/bin/openbsd/listproxy" --mode 755
+cat "$__manifest/pubkeys/mit-client-ca.pem" "$__manifest/pubkeys/startcom-root.pem" \
+  | require="__directory/home/wiki" __file /home/wiki/client-ca.pem --owner wiki --mode 644 --source -
+
+require="__directory/home/wiki" __file /home/wiki/gollum.sh --owner wiki --mode 755 --source  - <<'EOF'
+#!/bin/sh
+cd ~/pikawiki
+~/.gem/ruby/2.3/bin/gollum23 --host 127.0.0.1 --port 4567 --config ~/config.rb --allow-uploads page
+EOF
+
+require="__directory/home/wiki" __file /home/wiki/gollum-proxy.sh --owner wiki --mode 755 --source  - <<'EOF'
+#!/bin/sh
+~/listproxy \
+	-register yfncc@mit.edu \
+	-listenhttps pika-wiki.mit.edu:9443 \
+	-listenhttp pika-wiki.mit.edu:9080 \
+	-authenticate ~/client-ca.pem \
+	-authorize pika-wiki \
+	-proxy http://127.0.0.1:4567/ \
+	-state ~/letsencrypt.cache
+EOF
+
+require="__directory/home/wiki" __file /home/wiki/config.rb --owner wiki --mode 644 --source - <<'EOF'
+class Precious::App
+    before do
+        session['gollum.author'] = {
+            :name       => request.env['HTTP_PROXY_AUTHENTICATED_FULL_NAME'],
+            :email      => request.env['HTTP_PROXY_AUTHENTICATED_EMAIL'],
+        }
+    end
+end
+EOF
+
 # MANUALLY: su wiki
 # MANUALLY: cd
 # MANUALLY: gem install --user-install --no-document gollum
-# MANUALLY: cd pikawiki
-# MANUALLY: git init
