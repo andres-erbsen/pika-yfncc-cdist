@@ -129,4 +129,4 @@ su wiki -c /home/wiki/gollum-proxy.sh &
 EOF
 # MANUALLY: su wiki
 # MANUALLY: cd
-# MANUALLY: gem install --user-install --no-document gollum
+# MANUALLY: gem install --user-install --no-document gollum github-markdown
