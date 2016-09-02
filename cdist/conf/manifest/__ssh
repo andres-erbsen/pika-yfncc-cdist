@@ -1,0 +1,13 @@
+# This is the default ssh configuration for pika computers. It requires a
+# modern ssh server, so different choices should be made for old devices.
+
+__key_value HostKey --value /etc/ssh/ssh_host_ed25519_key --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PubkeyAuthentication --value yes --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PasswordAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+__key_value ChallengeResponseAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
+__key_value PermitRootLogin --value prohibit-password --file /etc/ssh/sshd_config --delimiter ' '
+
+__directory /root/.ssh --owner root --group root --mode 0700
+require="__directory/root/.ssh"
+  __file /root/.ssh/authorized_keys --owner root --group root --mode 0600 \
+	--source "$__manifest/pubkeys/yfnccs"

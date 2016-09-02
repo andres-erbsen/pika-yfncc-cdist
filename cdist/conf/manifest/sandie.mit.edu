@@ -1,0 +1,14 @@
+__package vim
+__package sudo
+__package tree
+__package rsync
+__package curl
+__package sshfs
+
+__package openssh-server
+. "${__manifest}/__ssh"
+__start_on_boot ssh
+
+__package openntpd
+
+# sandstorm installed using "curl https://install.sandstorm.io/ | bash"
