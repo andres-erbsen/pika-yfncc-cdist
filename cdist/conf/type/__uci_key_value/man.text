@@ -1,0 +1,33 @@
+cdist-type__uci_key_value(7)
+========================
+Based on cdist-type__key_value (Steven Armstrong <steven-cdist--@--armstrong.cc>)
+
+
+NAME
+----
+cdist-type__uci_key_value - Change property values in files using uci
+
+
+DESCRIPTION
+-----------
+This cdist type allows you to change values in a key value based config
+file managed by UCI.
+
+OPTIONAL PARAMETERS
+-------------------
+option::
+   The fully qualified name of the option to set, in the format "config.section.option". Defaults to object_id.
+value::
+   The value to set for the option; must be specified unless state is set to "absent".
+state::
+   Either "present" or "absent"; must be set to "absent" if value is not specified. Default is "present".
+
+
+MESSAGES
+--------
+remove::
+    removed key and value
+insert::
+    Added key and value
+change::
+    Changed value of existing key
