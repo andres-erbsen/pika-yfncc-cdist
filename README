@@ -1,3 +1,26 @@
+
+pika yfncc configuration management
+-----------------------------------
+
+This repository contains the configuration files for all yfncc-managed
+computers at pika. This repository is public, but edited only in coordination
+with yfncc.
+
+The "midstream" branch contains scripts that may be of independent interest,
+the pika branch is exclusively for stuff concerning specific computers.
+
+This repository is rebased onto the latest cdist release every once in a while
+as follows:
+
+	git fetch https://github.com/telmich/cdist.git
+	git checkout midstream && git rebase 4.3.1 # pick your release
+	# resolve conflicts here
+	git chcekout pika && git rebase midstream
+
+To keep this working cleanly, it is important not to modify unrelated files in
+the same commit, and it may make sense to squash revert commites before rebase.
+
+
 cdist
 -----
 
