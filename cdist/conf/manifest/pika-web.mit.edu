@@ -10,21 +10,8 @@ echo -e 'lookup file bind\nnameserver 18.72.0.3\nnameserver 18.70.0.160' | __fil
 __hostname
 
 # ## ssh
-__key_value HostKey --value /etc/ssh/ssh_host_ed25519_key --file /etc/ssh/sshd_config --delimiter ' '
-__key_value PubkeyAuthentication --value yes --file /etc/ssh/sshd_config --delimiter ' '
-__key_value PasswordAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
-__key_value ChallengeResponseAuthentication --value no --file /etc/ssh/sshd_config --delimiter ' '
-__key_value PermitRootLogin --value prohibit-password --file /etc/ssh/sshd_config --delimiter ' '
 
-__ssh_authorized_keys root \
-   --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHAzOGKaN0OBHo0xmnki83By1M0MSMu4ueqtRB6oTNw+ andreser@ashryn" \
-   --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAGY9vBwf2B1SSPxL/XUD8aou9ROR7nXUt+LBSp9kfRI jadep@jadep-MacBookPro"
-
-# ## NTP
-__key_value ntpd_flags --value '""' --file /etc/rc.conf.local --delimiter '='
-__key_value server --value time.mit.edu --file /etc/ntpd.conf --delimiter ' '
-__key_value servers --value pool.ntp.org --file /etc/ntpd.conf --delimiter ' '
-__line ntpd-constraint --line 'constraints from "https://www.google.com"' --file /etc/ntpd.conf
+. "${__manifest}/__ssh"
 
 # ## packet filtering
 # route incoming connections to user-mode services
