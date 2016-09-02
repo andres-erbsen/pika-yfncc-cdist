@@ -1,0 +1,3 @@
+. "${__manifest}/__ssh"
+
+__package vim-lite
