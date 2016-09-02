@@ -1,0 +1,65 @@
+# vim: set ts=4 sw=4 et :
+
+# # TP-LINK WDR43000 access points
+# ## Manual Preparation
+# - install openwrt
+# - ssh keys in /etc/dropbear/authorized_keys
+# - `opkg update && opkg install coreutils-stat && opkg install coreutils-cksum`
+__package coreutils
+__package coreutils-stat
+__package coreutils-cksum
+
+
+export CDIST_ORDER_DEPENDENCY=on
+__ssh_authorized_key andreser --file /etc/dropbear/authorized_keys \
+    --key 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNAw+/J7/SoM4/XNie20lqMlPTxiHhjpA9SMJI/0Xx+qbEnmLQN2G2XZa+HQaqZj/gzpj0xbS4hpoi7qgKaJN0uzjN/F1dhQ7ZvhxvKH10nJEQBTfxdwwUCivIx8TE+TsnB+mNRQsjXcXXdmbB1kHpzlKEqAIqys3QSro/AVmYQ2t7xKRnQK3g1hXosXyPzcGO7G7ag3vGd4bhl0FE8Ib6yfDs/DGZyC9LrV+450mw9sKlkvF14NuCrkK5P5HeTc8MiLXHRuIt8iDnhz8lXpfbnThNic8GDEfjdRAqIsrMSrp19Ofgoni68V36blRbNLLDAO7E60e8/1LF9VJ/7Gar' \
+    --comment andreser
+__ssh_authorized_key jadep --file /etc/dropbear/authorized_keys \
+    --key 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDMv6DHO/SwyceEJ8hHbkUs66ees8IZ76joxuAbZtQdoXnB6DuofVzC/6Fl4lNEFWJhiZ02zzOm7IUTwq8pg/hrmdYy6fIsQ1mc0+41PTzqU0uNx7Vf6ZspAynk4V/ae6/bY9pbE8lrRPGyUClAbASixc/KDW2y7m5Q8hmeV06ijd6qMMeSxvH7AntvrD73nhiYck/xKNHl/qxPw03MB6t5/Hdrd+71YbprgPAi9NWnLyxhumbRm2ISoAl3+dI9gowiy0mDP9uqSTkUnjuwPzTHOMv1S97yhmbMBUWXrC7uVxhTJphIPwD8/G4dKiUXSz2GrIn/3J8ARHBtck6TFfOX' \
+    --comment jadep
+__uci_key_value "dropbear.@dropbear[0].PasswordAuth" --value off
+unset CDIST_ORDER_DEPENDENCY
+
+
+__start_on_boot firewall --state absent
+__start_on_boot uhttpd --state absent
+__start_on_boot telnet --state absent
+__start_on_boot odhcpd --state absent
+__start_on_boot dnsmasq --state absent
+
+__uci_key_value system.hostname --value "pika-guest-ap-murph"
+
+__uci_key_value dhcp.lan.ignore --value 1
+__uci_key_value dhcp.lan.ra_management --value 1
+__uci_key_value dhcp.lan.start --state absent
+__uci_key_value dhcp.lan.limit --state absent
+__uci_key_value dhcp.lan.leasetime --state absent
+
+export CDIST_ORDER_DEPENDENCY=on
+__uci_add_section firewall.@forwarding[1]
+__uci_key_value firewall.@forwarding[1].dest --value lan
+__uci_key_value firewall.@forwarding[1].src --value wan
+unset CDIST_ORDER_DEPENDENCY
+
+__uci_key_value network.wan._orig_ifname --value 'eth0.2'
+__uci_key_value network.wan._orig_bridge --value false
+__uci_key_value network.wan.proto --value static
+__uci_key_value network.wan.ipaddr --value '18.102.214.14'
+__uci_key_value network.wan.netmask --value '255.255.255.0'
+__uci_key_value network.wan.gateway --value '18.102.214.1'
+__uci_key_value network.wan.broadcast --value '18.102.214.255'
+__uci_key_value network.wan.dns --value '18.71.0.151'
+__uci_key_value network.wan.type --value bridge
+__uci_key_value network.@switch_vlan[0].ports --value 0t
+__uci_key_value network.@switch_vlan[0].vid --value 1
+__uci_key_value network.@switch_vlan[1].ports --value '0t 1 2 3 4 5'
+__uci_key_value network.@switch_vlan[1].vid --value 2
+
+__uci_key_value wireless.@wifi-iface[0].network --value 'lan wan'
+__uci_key_value wireless.@wifi-iface[0].ssid --value 'pika-livingroom'
+__uci_key_value wireless.@wifi-iface[1].network --value 'lan wan'
+__uci_key_value wireless.@wifi-iface[1].ssid --value 'pika-livingroom'
+__uci_key_value wireless.radio0.channel --value 11
+__uci_key_value wireless.radio0.disabled --value 1
+__uci_key_value wireless.radio1.channel --value 165
+__uci_key_value wireless.radio1.disabled --value 1

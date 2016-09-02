@@ -1,0 +1,119 @@
+# ## machine
+__link /etc/localtime --source /usr/share/zoneinfo/US/Eastern --type symbolic
+__line PKG_PATH --file /root/.profile --line 'export PKG_PATH=http://mirrors.mit.edu/pub/OpenBSD/$(uname -r)/packages/$(machine -a)/'
+__package_pkg_openbsd vim --state present --flavor no_x11
+
+# ## network
+echo -e 'inet 18.102.214.17 255.255.255.0\ninet alias 18.102.214.25 255.255.255.255' | __file /etc/hostname.em0 --source -
+echo '18.102.214.1' | __file /etc/mygate --source -
+echo -e 'lookup file bind\nnameserver 18.72.0.3\nnameserver 18.70.0.160' | __file /etc/resolv.conf --source -
+__hostname
+
+# ## ssh
+
+. "${__manifest}/__ssh"
+
+# ## packet filtering
+# route incoming connections to user-mode services
+
+__file /etc/pf.conf --source - <<'EOF'
+#	$OpenBSD: pf.conf,v 1.54 2014/08/23 05:49:42 deraadt Exp $
+#
+# See pf.conf(5) and /etc/examples/pf.conf
+
+set skip on lo
+
+block return	# block stateless traffic
+pass		# establish keep-state
+
+# By default, do not permit remote connections to X11
+block return in on ! lo0 proto tcp to port 6000:6010
+
+# pika-web.mit.edu is served by user web
+match in proto tcp from any to 18.102.214.17 port 80 rdr-to 18.102.214.17 port 8080
+match in proto tcp from any to 18.102.214.17 port 443 rdr-to 18.102.214.17 port 8443
+# pika-wiki.mit.edu is served by user wiki
+match in proto tcp from any to 18.102.214.25 port 80 rdr-to 18.102.214.25 port 9080
+match in proto tcp from any to 18.102.214.25 port 443 rdr-to 18.102.214.25 port 9443
+EOF
+
+# ## Website
+__user web --home /home/web
+require="__user/web" __directory /home/web --owner web
+
+__package_pkg_openbsd git
+require="__directory/home/web" __git /home/web/pika-website --source https://github.com/andres-erbsen/pika-website --owner web
+# USAGE: to update this, change user to `web` and do `git pull --rebase`
+
+require="__directory/home/web" __file /home/web/simple-https-server --owner web --source "$__manifest/bin/openbsd/simple-https-server" --mode 755
+require="__directory/home/web __file/home/web/simple-https-server" \
+  __file /home/web/run.sh --owner web --mode 755 --source  - <<'EOF'
+#!/bin/sh
+~/simple-https-server \
+	-register yfncc@mit.edu \
+	-listenhttps pika-web.mit.edu:8443 \
+	-listenhttp pika-web.mit.edu:8080 \
+	-serve ~/pika-website \
+	-state ~/letsencrypt.cache \
+	2>&1 | logger -t web-simple-https-server
+EOF
+
+# # Wiki
+
+__user wiki --home /home/wiki
+
+require="__user/wiki" __directory /home/wiki --owner wiki
+require="__directory/home/wiki" __directory /home/wiki/pikawiki --owner wiki
+
+__package_pkg_openbsd ruby --version 2.3.0 --pkg_path http://mirrors.mit.edu/pub/OpenBSD/5.9/packages/amd64
+
+__package_pkg_openbsd icu4c
+
+require="__directory/home/wiki" __file /home/wiki/listproxy --owner wiki --source "$__manifest/bin/openbsd/listproxy" --mode 755
+cat "$__manifest/pubkeys/mit-client-ca.pem" "$__manifest/pubkeys/startcom-root.pem" \
+  | require="__directory/home/wiki" __file /home/wiki/client-ca.pem --owner wiki --mode 644 --source -
+
+require="__directory/home/wiki" __file /home/wiki/config.rb --owner wiki --mode 644 --source - <<'EOF'
+class Precious::App
+    before do
+        session['gollum.author'] = {
+            :name       => request.env['HTTP_PROXY_AUTHENTICATED_FULL_NAME'],
+            :email      => request.env['HTTP_PROXY_AUTHENTICATED_EMAIL'],
+        }
+    end
+end
+EOF
+
+require="__file/home/wiki/config.rb" __file /home/wiki/gollum.sh --owner wiki --mode 755 --source  - <<'EOF'
+#!/bin/sh
+cd ~/pikawiki
+~/.gem/ruby/2.3/bin/gollum23 --host 127.0.0.1 --port 4567 --config ~/config.rb --allow-uploads page \
+	2>&1 | logger -t wiki-gollum
+EOF
+
+require="__file/home/wiki/listproxy __file/home/wiki/client-ca.pem" \
+  __file /home/wiki/gollum-proxy.sh --owner wiki --mode 755 --source  - <<'EOF'
+#!/bin/sh
+~/listproxy \
+	-register yfncc@mit.edu \
+	-listenhttps pika-wiki.mit.edu:9443 \
+	-listenhttp pika-wiki.mit.edu:9080 \
+	-authenticate ~/client-ca.pem \
+	-authorize pika-wiki \
+	-proxy http://127.0.0.1:4567/ \
+	-state ~/letsencrypt.cache \
+	2>&1 | logger -t wiki-listproxy
+EOF
+
+# ## autostart all the things
+#
+require="__file/home/web/run.sh __file/home/wiki/gollum.sh __file/home/wiki/gollum-proxy.sh" \
+  __file /etc/rc.local --owner root --mode 700 --source  - <<'EOF'
+#!/bin/sh
+su web -c /home/web/run.sh &
+su wiki -c /home/wiki/gollum.sh &
+su wiki -c /home/wiki/gollum-proxy.sh &
+EOF
+# MANUALLY: su wiki
+# MANUALLY: cd
+# MANUALLY: gem install --user-install --no-document gollum github-markdown

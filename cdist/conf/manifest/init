@@ -1,0 +1,5 @@
+#!/bin/sh
+
+__file /etc/cdist-configured
+
+. "${__manifest}/${__target_host}"
