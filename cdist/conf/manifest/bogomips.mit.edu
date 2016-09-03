@@ -37,3 +37,4 @@ EOF
 
 __package vim-lite
 __package tmux
+__package zsh
