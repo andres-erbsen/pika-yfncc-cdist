@@ -1,3 +1,27 @@
+# bogomips.mit.edu is a 2U server with 12 drive bays. It is used for backups
+# and other storage. This configuration file manages the operating system which
+# is installed on a USB disk. The state of the drives is managed manually.
+
+# hw.model: Intel(R) Xeon(R) CPU           X5560  @ 2.80GHz
+# hw.machine: amd64
+# hw.ncpu: 16
+# hw.physmem: 25726824448
+
 . "${__manifest}/__ssh"
 
+__file /etc/rc.conf --owner root --group wheel --mode 644 --source - <<'EOF'
+clear_tmp_enable="YES"
+syslogd_flags="-ss"
+sendmail_enable="NONE"
+hostname="bogomips"
+ifconfig_igb0="inet 18.214.0.63 netmask 0xffff0000"
+defaultrouter="18.214.0.1"
+sshd_enable="YES"
+powerd_enable="YES"
+# Set dumpdev to "AUTO" to enable crash dumps, "NO" to disable
+dumpdev="AUTO"
+zfs_enable="YES"
+EOF
+
 __package vim-lite
+__package tmux
