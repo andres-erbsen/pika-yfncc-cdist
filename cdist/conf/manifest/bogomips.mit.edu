@@ -1,6 +1,18 @@
 # bogomips.mit.edu is a 2U server with 12 drive bays. It is used for backups
 # and other storage. This configuration file manages the operating system which
-# is installed on a USB disk. The state of the drives is managed manually.
+# is installed on a USB disk.
+#
+# The state of the drives is managed manually. By this we mean that the SUN
+# RAID controller to which the drives are connected is holding the drives
+# hostage and every time we want to add, remove, or replace a drive we need to
+# press C-A during boot and wrangle the controller's archaic interface. No
+# hot-plug for you :/. As an extra feature, the default way of adding a new
+# drive overwrites its partition table.
+#
+# Of course, we do not actually use the hardware RAID controller for RAID. Both
+# the 6x2TB (in slots 0..5) and 6x1TB (in slots 6..11) arrays will be set up in
+# a raidz2 configuration, able to tolerate two disk failures even amid power
+# failures and providing 4x2=8TB and 4x1=4TB storage respectively.
 
 # hw.model: Intel(R) Xeon(R) CPU           X5560  @ 2.80GHz
 # hw.machine: amd64
