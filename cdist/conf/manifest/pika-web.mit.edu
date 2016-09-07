@@ -117,7 +117,7 @@ EOF
 
 __user mealplan --home /home/mealplan
 require="__user/mealplan" __directory /home/mealplan --owner mealplan
-require="__directory/home/mealplan" __file /home/mealplan/mealplanserver --owner mealplan --source "$__manifest/bin/openbsd/listproxy" --mode 755
+require="__directory/home/mealplan" __file /home/mealplan/mealplanserver --owner mealplan --source "$__manifest/bin/openbsd/mealplan" --mode 755
 
 cat "$__manifest/pubkeys/mit-client-ca.pem" "$__manifest/pubkeys/startcom-root.pem" \
   | require="__directory/home/mealplan" __file /home/mealplan/client-ca.pem --owner mealplan --mode 644 --source -
@@ -131,7 +131,6 @@ require="__file/home/mealplan/mealplanserver" \
 	-listenhttp mealplan.mit.edu:10080 \
 	-authenticate ~/client-ca.pem \
 	-authorize pika-food \
-	-proxy http://mit.edu/ \
 	-state ~/letsencrypt.cache \
 	2>&1 | logger -t mealplanserver
 EOF
