@@ -1,0 +1,48 @@
+<html>
+  <head>
+  <title>Mealplan Signup</title>
+<style>
+table {
+  border-collapse: collapse;
+}
+th {
+  padding: 4px 8px;
+  width: 12em;
+}
+td {
+  padding: 8;
+  border: 1px solid black;
+    text-align: center;
+}
+</style>
+  </head>
+  <body>
+  <h1>Mealplan Signup</h1>
+  {{if .Message}}<p>{{.Message}}</p>{{end}}
+  <form action="/claim" method="POST">
+    <table>
+      <tr>
+        <th></th>
+        {{range .Days}}
+        <th>{{.}}</th>
+        {{end}}
+      </tr>
+      {{$ass := .Assignments}}
+      {{range $duty := .Duties}}<tr><th>{{$duty}}</th>
+        {{range $dayindex, $assignee := (index $ass $duty)}}
+        <td>
+          {{if $assignee}}
+          <button disabled>{{$assignee}}</button>
+          {{else}}
+          <button name="claim/{{$duty}}/{{$dayindex}}">Claim!</button>
+          {{end}}
+        </td>
+        {{end}}
+      </tr>{{end}}
+    </table>
+  </form>
+  <footer>
+    Problems? Need to unclaim a duty? Email <a href="mailto:yfnkm@mit.edu">yfnkm@mit.edu</a>
+  </footer>
+  </body>
+</html>
