@@ -4,7 +4,12 @@ __line PKG_PATH --file /root/.profile --line 'export PKG_PATH=http://mirrors.mit
 __package_pkg_openbsd vim --state present --flavor no_x11
 
 # ## network
-echo -e 'inet 18.102.214.17 255.255.255.0\ninet alias 18.102.214.25 255.255.255.255' | __file /etc/hostname.em0 --source -
+__file /etc/hostname.em0 --source - <<'EOF'
+inet 18.102.214.17 255.255.255.0
+inet alias 18.102.214.25 255.255.255.255
+inet alias 18.102.214.26 255.255.255.255
+EOF
+
 echo '18.102.214.1' | __file /etc/mygate --source -
 echo -e 'lookup file bind\nnameserver 18.72.0.3\nnameserver 18.70.0.160' | __file /etc/resolv.conf --source -
 __hostname
@@ -35,6 +40,9 @@ match in proto tcp from any to 18.102.214.17 port 443 rdr-to 18.102.214.17 port 
 # pika-wiki.mit.edu is served by user wiki
 match in proto tcp from any to 18.102.214.25 port 80 rdr-to 18.102.214.25 port 9080
 match in proto tcp from any to 18.102.214.25 port 443 rdr-to 18.102.214.25 port 9443
+# mealplan.mit.edu is served by user mealplan
+match in proto tcp from any to 18.102.214.26 port 80 rdr-to 18.102.214.26 port 10080
+match in proto tcp from any to 18.102.214.26 port 443 rdr-to 18.102.214.26 port 10443
 EOF
 
 # ## Website
@@ -105,6 +113,29 @@ require="__file/home/wiki/listproxy __file/home/wiki/client-ca.pem" \
 	2>&1 | logger -t wiki-listproxy
 EOF
 
+# # Mealplan site
+
+__user mealplan --home /home/mealplan
+require="__user/mealplan" __directory /home/mealplan --owner mealplan
+require="__directory/home/mealplan" __file /home/mealplan/mealplanserver --owner mealplan --source "$__manifest/bin/openbsd/listproxy" --mode 755
+
+cat "$__manifest/pubkeys/mit-client-ca.pem" "$__manifest/pubkeys/startcom-root.pem" \
+  | require="__directory/home/mealplan" __file /home/mealplan/client-ca.pem --owner mealplan --mode 644 --source -
+
+require="__file/home/mealplan/mealplanserver" \
+  __file /home/mealplan/run.sh --owner mealplan --mode 755 --source  - <<'EOF'
+#!/bin/sh
+~/mealplanserver \
+	-register yfncc@mit.edu \
+	-listenhttps mealplan.mit.edu:10443 \
+	-listenhttp mealplan.mit.edu:10080 \
+	-authenticate ~/client-ca.pem \
+	-authorize pika-food \
+	-proxy http://mit.edu/ \
+	-state ~/letsencrypt.cache \
+	2>&1 | logger -t mealplanserver
+EOF
+
 # ## autostart all the things
 #
 require="__file/home/web/run.sh __file/home/wiki/gollum.sh __file/home/wiki/gollum-proxy.sh" \
@@ -113,6 +144,7 @@ require="__file/home/web/run.sh __file/home/wiki/gollum.sh __file/home/wiki/goll
 su web -c /home/web/run.sh &
 su wiki -c /home/wiki/gollum.sh &
 su wiki -c /home/wiki/gollum-proxy.sh &
+su mealplan -c /home/mealplan/run.sh &
 EOF
 # MANUALLY: su wiki
 # MANUALLY: cd
