@@ -13,6 +13,13 @@
 # the 6x2TB (in slots 0..5) and 6x1TB (in slots 6..11) arrays will be set up in
 # a raidz2 configuration, able to tolerate two disk failures even amid power
 # failures and providing 4x2=8TB and 4x1=4TB storage respectively.
+#
+# The zpool containting the 6 2TB drives on the (technician's) left when facing
+# the server from its front is called "left". It has two filesystems:
+# /left/media and /left/archive.
+#
+# The state of the dirves can be viewed by running "zpool status", detailed
+# information can be seen using "zfs get all".
 
 # hw.model: Intel(R) Xeon(R) CPU           X5560  @ 2.80GHz
 # hw.machine: amd64
