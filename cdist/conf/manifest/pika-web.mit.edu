@@ -118,6 +118,8 @@ EOF
 __user mealplan --home /home/mealplan
 require="__user/mealplan" __directory /home/mealplan --owner mealplan
 require="__directory/home/mealplan" __file /home/mealplan/mealplanserver --owner mealplan --source "$__manifest/bin/openbsd/mealplan" --mode 755
+require="__directory/home/mealplan" __file /home/mealplan/signup.html --owner mealplan --source "$__manifest/html/signup.html" --mode 644
+require="__directory/home/mealplan" __file /home/mealplan/admin.html --owner mealplan --source "$__manifest/html/admin.html" --mode 644
 
 cat "$__manifest/pubkeys/mit-client-ca.pem" "$__manifest/pubkeys/startcom-root.pem" \
   | require="__directory/home/mealplan" __file /home/mealplan/client-ca.pem --owner mealplan --mode 644 --source -
