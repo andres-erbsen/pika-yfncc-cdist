@@ -50,7 +50,7 @@ __directory /home --owner root --mode 755
 
 __group media
 require="__group/media" \
-  __directory /left/media --recursive --owner root --group media --mode "ug=rwX,o=" # show
+  __directory /left/media --recursive --owner root --group media --mode "ug=rwX,o=" # slow
 
 __group archive
 require="__group/archive" \
@@ -71,7 +71,7 @@ for user in $(echo "$media_users $archive_users" | tr ' ' '\n' | sort | uniq | t
       __file "/home/$user/.ssh/authorized_keys" --owner "$user" --mode 0600 --source "${__manifest}/pubkeys/$user"
 
     require="__user/$user __group/media" CDIST_OVERRIDE=merge \
-      __user_groups "$user" --group media --state $(echo "$media_users" | grep -q -- "$user" && echo present || echo absent)
+      __user_groups "$user" --group media --state $(echo "$media_users" | grep -wq -- "$user" && echo present || echo absent)
     require="__user/$user __group/archive" CDIST_OVERRIDE=merge \
-      __user_groups "$user" --group archive --state $(echo "$archive_users" | grep -q -- "$user" && echo present || echo absent)
+      __user_groups "$user" --group archive --state $(echo "$archive_users" | grep -wq -- "$user" && echo present || echo absent)
 done
