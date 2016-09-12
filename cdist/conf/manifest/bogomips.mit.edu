@@ -50,15 +50,28 @@ __directory /home --owner root --mode 755
 
 __group media
 require="__group/media" \
-  __directory /left/media --recursive --owner root --group media --mode "ug=rwX,o="
+  __directory /left/media --recursive --owner root --group media --mode "ug=rwX,o=" # show
+
+__group archive
+require="__group/archive" \
+  __directory /left/archive --recursive --owner root --group archive --mode "ug=rwX,o=" # slow
 
 ## Users
 
-__user kaufmand --home /home/kaufmand --create-home
-require="__user/kaufmand" \
-  __directory /home/kaufmand/.ssh --owner kaufmand --mode 0700
-require="__directory/home/kaufmand/.ssh" \
-  __file /home/kaufmand/.ssh/authorized_keys --owner kaufmand --mode 0600 --source "${__manifest}/pubkeys/kaufmand"
+media_users="kaufmand jadep"
+archive_users="jadep"
 
-require="__user/kaufmand __group/media" \
-  __user_groups kaufmand --group media
+for user in $(echo "$media_users $archive_users" | tr ' ' '\n' | sort | uniq | tr '\n' ' '); do
+    __user "$user" # --home and --create-home are not supported on FreeBSD
+    require="__user/$user" \
+      __directory "/home/$user" --owner "$user" --mode 0700
+    require="__directory/home/$user" \
+      __directory "/home/$user/.ssh" --owner "$user" --mode 0700
+    require="__directory/home/$user/.ssh" \
+      __file "/home/$user/.ssh/authorized_keys" --owner "$user" --mode 0600 --source "${__manifest}/pubkeys/$user"
+
+    require="__user/$user __group/media" CDIST_OVERRIDE=merge \
+      __user_groups "$user" --group media --state $(echo "$media_users" | grep -q -- "$user" && echo present || echo absent)
+    require="__user/$user __group/archive" CDIST_OVERRIDE=merge \
+      __user_groups "$user" --group archive --state $(echo "$archive_users" | grep -q -- "$user" && echo present || echo absent)
+done
