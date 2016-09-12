@@ -45,3 +45,20 @@ EOF
 __package vim-lite
 __package tmux
 __package zsh
+
+__directory /home --owner root --mode 755
+
+__group media
+require="__group/media" \
+  __directory /left/media --recursive --owner root --group media --mode "ug=rwX,o="
+
+## Users
+
+__user kaufmand --home /home/kaufmand --create-home
+require="__user/kaufmand" \
+  __directory /home/kaufmand/.ssh --owner kaufmand --mode 0700
+require="__directory/home/kaufmand/.ssh" \
+  __file /home/kaufmand/.ssh/authorized_keys --owner kaufmand --mode 0600 --source "${__manifest}/pubkeys/kaufmand"
+
+require="__user/kaufmand __group/media" \
+  __user_groups kaufmand --group media
