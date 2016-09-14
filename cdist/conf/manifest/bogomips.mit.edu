@@ -49,17 +49,18 @@ __package zsh
 __directory /home --owner root --mode 755
 
 __group media
-require="__group/media" \
-  __directory /left/media --recursive --owner root --group media --mode "ug=rwX,o=" # slow
-
 __group archive
-require="__group/archive" \
-  __directory /left/archive --recursive --owner root --group archive --mode "ug=rwX,o=" # slow
+
+# slow:
+# require="__group/media" \
+#   slow: __directory /left/media --recursive --owner root --group media --mode "ug=rwX,o="
+# require="__group/archive" \
+#   __directory /left/archive --recursive --owner root --group archive --mode "ug=rwX,o=" # slow
 
 ## Users
 
-media_users="kaufmand jadep"
-archive_users="jadep"
+media_users="kaufmand jadep ddoss"
+archive_users="jadep ddoss"
 
 for user in $(echo "$media_users $archive_users" | tr ' ' '\n' | sort | uniq | tr '\n' ' '); do
     __user "$user" # --home and --create-home are not supported on FreeBSD
@@ -69,9 +70,17 @@ for user in $(echo "$media_users $archive_users" | tr ' ' '\n' | sort | uniq | t
       __directory "/home/$user/.ssh" --owner "$user" --mode 0700
     require="__directory/home/$user/.ssh" \
       __file "/home/$user/.ssh/authorized_keys" --owner "$user" --mode 0600 --source "${__manifest}/pubkeys/$user"
-
-    require="__user/$user __group/media" CDIST_OVERRIDE=merge \
-      __user_groups "$user" --group media --state $(echo "$media_users" | grep -wq -- "$user" && echo present || echo absent)
-    require="__user/$user __group/archive" CDIST_OVERRIDE=merge \
-      __user_groups "$user" --group archive --state $(echo "$archive_users" | grep -wq -- "$user" && echo present || echo absent)
 done
+
+# TODO: change __user_groups or write a new cdist type so that an user can be
+# specified to be in some groups and not in other groups at the same time, then
+# automate this section.
+
+require="__user/jadep __group/media __group/archive" \
+  __user_groups "jadep" --group media --group archive
+
+require="__user/ddoss __group/media __group/archive" \
+  __user_groups "ddoss" --group media --group archive
+
+require="__user/kaufmand __group/media __group/archive" \
+  __user_groups "kaufmand" --group media
