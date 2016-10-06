@@ -45,6 +45,7 @@ EOF
 __package vim-lite
 __package tmux
 __package zsh
+__package smartmontools
 
 __directory /home --owner root --mode 755
 
