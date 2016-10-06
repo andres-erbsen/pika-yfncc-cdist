@@ -138,7 +138,7 @@ EOF
 # ## autostart all the things
 #
 require="__file/home/web/run.sh __file/home/wiki/gollum.sh __file/home/wiki/gollum-proxy.sh" \
-  __file /etc/rc.local --owner root --mode 700 --source  - <<'EOF'
+  __file /etc/rc.local --owner root --mode 644 --source  - <<'EOF'
 #!/bin/sh
 su web -c /home/web/run.sh &
 su wiki -c /home/wiki/gollum.sh &
