@@ -8,6 +8,7 @@ __file /etc/hostname.em0 --source - <<'EOF'
 inet 18.102.214.17 255.255.255.0
 inet alias 18.102.214.25 255.255.255.255
 inet alias 18.102.214.26 255.255.255.255
+inet alias 18.102.214.27 255.255.255.255
 EOF
 
 echo '18.102.214.1' | __file /etc/mygate --source -
@@ -43,6 +44,9 @@ match in proto tcp from any to 18.102.214.25 port 443 rdr-to 18.102.214.25 port 
 # mealplan.mit.edu is served by user mealplan
 match in proto tcp from any to 18.102.214.26 port 80 rdr-to 18.102.214.26 port 10080
 match in proto tcp from any to 18.102.214.26 port 443 rdr-to 18.102.214.26 port 10443
+# public-pika-wiki.mit.edu is served by user wiki
+match in proto tcp from any to 18.102.214.27 port 80 rdr-to 18.102.214.25 port 9580
+match in proto tcp from any to 18.102.214.27 port 443 rdr-to 18.102.214.25 port 9943
 EOF
 
 # ## Website
