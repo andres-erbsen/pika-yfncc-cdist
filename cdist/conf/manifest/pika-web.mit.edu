@@ -152,3 +152,6 @@ EOF
 # MANUALLY: su wiki
 # MANUALLY: cd
 # MANUALLY: gem install --user-install --no-document gollum github-markdown
+# these steps may need to be repeated after every system upgrade --
+# some ruby gems are strongly tied to the versions of system
+# libraries that were present at the time they were installed.
