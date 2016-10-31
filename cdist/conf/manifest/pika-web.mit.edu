@@ -45,8 +45,8 @@ match in proto tcp from any to 18.102.214.25 port 443 rdr-to 18.102.214.25 port 
 match in proto tcp from any to 18.102.214.26 port 80 rdr-to 18.102.214.26 port 10080
 match in proto tcp from any to 18.102.214.26 port 443 rdr-to 18.102.214.26 port 10443
 # public-pika-wiki.mit.edu is served by user wiki
-match in proto tcp from any to 18.102.214.27 port 80 rdr-to 18.102.214.25 port 9580
-match in proto tcp from any to 18.102.214.27 port 443 rdr-to 18.102.214.25 port 9943
+match in proto tcp from any to 18.102.214.27 port 80 rdr-to 18.102.214.27 port 9580
+match in proto tcp from any to 18.102.214.27 port 443 rdr-to 18.102.214.27 port 9943
 EOF
 
 # ## Website
@@ -117,6 +117,22 @@ require="__file/home/wiki/listproxy __file/home/wiki/client-ca.pem" \
 	2>&1 | logger -t wiki-listproxy
 EOF
 
+# ## Public wiki
+
+require="__directory/home/wiki" __file /home/wiki/public-wiki-server --owner wiki --mode 755 --source "$__manifest/bin/openbsd/public-wiki-server"
+require="__directory/home/wiki" __file /home/wiki/public-wiki.html --owner wiki --mode 755 --source "$__manifest/html/public-wiki.html"
+require="__file/home/wiki/public-wiki-server __file/home/wiki/public-wiki.html" __file /home/wiki/public-wiki.sh --owner wiki --mode 755 --source - <<'EOF'
+#!/bin/sh
+cd
+~/public-wiki-server \
+  -register yfncc@mit.edu \
+  -listenhttps public-pika-wiki.mit.edu:9943 \
+  -listenhttp public-pika-wiki.mit.edu:9580 \
+  -state ~/letsencrypt-public-wiki.cache \
+  -serve ~/pikawiki/Public \
+  2>&1 | logger -t public-wiki
+EOF
+
 # # Mealplan site
 
 __user mealplan --home /home/mealplan
@@ -129,7 +145,7 @@ require="__directory/home/mealplan" __file /home/mealplan/inventory.html --owner
 cat "$__manifest/pubkeys/mit-client-ca.pem" "$__manifest/pubkeys/startcom-root.pem" \
   | require="__directory/home/mealplan" __file /home/mealplan/client-ca.pem --owner mealplan --mode 644 --source -
 
-require="__file/home/mealplan/mealplanserver" \
+require="__file/home/mealplan/mealplanserver __file/home/mealplan/signup.html __file/home/mealplan/admin.html __file/home/mealplan/inventory.html" \
   __file /home/mealplan/run.sh --owner mealplan --mode 755 --source  - <<'EOF'
 #!/bin/sh
 cd
@@ -145,12 +161,13 @@ EOF
 
 # ## autostart all the things
 #
-require="__file/home/web/run.sh __file/home/wiki/gollum.sh __file/home/wiki/gollum-proxy.sh" \
+require="__file/home/web/run.sh __file/home/wiki/gollum.sh __file/home/wiki/gollum-proxy.sh __file/home/wiki/public-wiki.sh" \
   __file /etc/rc.local --owner root --mode 644 --source  - <<'EOF'
 #!/bin/sh
 su web -c /home/web/run.sh &
 su wiki -c /home/wiki/gollum.sh &
 su wiki -c /home/wiki/gollum-proxy.sh &
+su wiki -c /home/wiki/public-wiki.sh &
 su mealplan -c /home/mealplan/run.sh &
 EOF
 # MANUALLY: su wiki
