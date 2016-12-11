@@ -61,7 +61,7 @@ __group archive
 ## Users
 
 media_users="kaufmand jadep ddoss"
-archive_users="jadep ddoss"
+archive_users="jadep ddoss dmz"
 
 for user in $(echo "$media_users $archive_users" | tr ' ' '\n' | sort | uniq | tr '\n' ' '); do
     __user "$user" # --home and --create-home are not supported on FreeBSD
@@ -85,3 +85,7 @@ require="__user/ddoss __group/media __group/archive" \
 
 require="__user/kaufmand __group/media __group/archive" \
   __user_groups "kaufmand" --group media
+
+require="__user/dmz __group/archive" \
+  __user_groups "dmz" --group archive
+
