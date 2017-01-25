@@ -159,6 +159,13 @@ cd
 	2>&1 | logger -t mealplanserver
 EOF
 
+# # Mealplan reminders
+require="__user/mealplan" __file /home/mealplan/remind --source "$__manifest/bin/openbsd/remind" --mode 755
+require="__file/home/mealplan/remind" __cron mealplan-remind-clean --user mealplan --hour 11 --minute 0 \
+  --command "/home/mealplan/remind /home/mealplan/signups.dat clean 0"
+require="__file/home/mealplan/remind" __cron mealplan-remind-cook --user mealplan --hour 21 --minute 0 \
+  --command "/home/mealplan/remind /home/mealplan/signups.dat cook 1"
+
 # ## autostart all the things
 #
 require="__file/home/web/run.sh __file/home/wiki/gollum.sh __file/home/wiki/gollum-proxy.sh __file/home/wiki/public-wiki.sh" \
