@@ -15,8 +15,9 @@
 # failures and providing 4x2=8TB and 4x1=4TB storage respectively.
 #
 # The zpool containting the 6 2TB drives on the (technician's) left when facing
-# the server from its front is called "left". It has two filesystems:
-# /left/media and /left/archive.
+# the server from its front is called "left". It has two common datasets:
+# /left/media and /left/archive. Additionally, /left/backup contains one per
+# user or machine whose data is being backed up, and some of these have quotas.
 #
 # The state of the dirves can be viewed by running "zpool status", detailed
 # information can be seen using "zfs get all".
@@ -60,7 +61,8 @@ __group archive
 
 ## Users
 
-for user in kaufmand jadep ddoss dmz universalis; do
+# TODO: re-add dmz once public key is checked in
+for user in kaufmand jadep ddoss asuhl universalis; do
     __user "$user" # --home and --create-home are not supported on FreeBSD
     require="__user/$user" \
       __directory "/home/$user" --owner "$user" --mode 0700
@@ -83,9 +85,15 @@ require="__user/ddoss __group/media __group/archive" \
 require="__user/kaufmand __group/media" \
   __user_groups "kaufmand" --group media
 
-require="__user/dmz __group/archive" \
-  __user_groups "dmz" --group archive
+# require="__user/dmz __group/archive" \
+#   __user_groups "dmz" --group archive
 
 require="__user/universalis __group/media" \
   __user_groups "universalis" --group media
-  # currently unused, blocked on screen resolution setting for the raspberry py with sd card labeled "yfncc"
+  # universalis is currently unused, blocked on screen resolution setting for the raspberry py with sd card labeled "yfncc"
+
+require="__user/asuhl" \
+  __directory /left/backups/asuhl --owner asuhl --mode 700
+  # account sponsored by andreser, for backup purposes only
+  # SETUP: zfs set quota=100G /left/backups/asuhl
+  # SETUP: zfs allow asuhl create,destroy,snapshot,rollback,clone,promote,rename,mount,send,receive,allow left/backups/asuhl
