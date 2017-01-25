@@ -61,8 +61,7 @@ __group archive
 
 ## Users
 
-# TODO: re-add dmz once public key is checked in
-for user in kaufmand jadep ddoss asuhl universalis; do
+for user in kaufmand jadep ddoss asuhl universalis dmz; do
     __user "$user" # --home and --create-home are not supported on FreeBSD
     require="__user/$user" \
       __directory "/home/$user" --owner "$user" --mode 0700
@@ -85,8 +84,8 @@ require="__user/ddoss __group/media __group/archive" \
 require="__user/kaufmand __group/media" \
   __user_groups "kaufmand" --group media
 
-# require="__user/dmz __group/archive" \
-#   __user_groups "dmz" --group archive
+require="__user/dmz __group/archive" \
+  __user_groups "dmz" --group archive
 
 require="__user/universalis __group/media" \
   __user_groups "universalis" --group media
