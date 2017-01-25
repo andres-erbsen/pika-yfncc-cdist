@@ -1,13 +1,17 @@
 <html>
   <head>
-  <title>Mealplan Schedule</title>
+    <script
+src="https://code.jquery.com/jquery-3.1.1.min.js"
+integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+crossorigin="anonymous"></script>
+  <title>Mealplan Signup</title>
   <style>
 table {
   border-collapse: collapse;
 }
 th {
   padding: 4px 8px;
-  width: 12em;
+  width: 20em;
 }
 td {
   padding: 8;
@@ -22,109 +26,100 @@ h2 {
   font-size: 1.5em;
   font-style: italic;
 }
-.week1 {
+.week {
   padding: 1em;
 }
-.week2 {
+.week:nth-child(even) {
   background-color: #eeeeee;
-  padding: 1em;
 }
 .usual {
   text-decoration: line-through;
 }
+.attendance-row > td, .attendance-row > th {
+  border: none;
+}
+.warning {
+  color: blue;
+  background-color: yellow;
+}
   </style>
+  <script type="text/javascript">
+    var changed = false;
+$().ready(function(){
+  window.onbeforeunload = function(e) {
+    if (changed) {
+      var message = "You have unsaved attendance changes. Are you sure you want to leave?";
+      e.returnValue = message;
+      return message;
+    }
+  };
+  $("input:checkbox").change(function() {
+    changed = true;
+    $(".save").addClass("warning");
+  });
+  $("form").submit(function() {
+    changed = false;
+  });
+});
+  </script>
   </head>
   <body>
-    <h1>Mealplan Q2 (Oct 31 - Dec 11)</h1>
+    <h1>IAP Mealplan</h1>
     <p class="note">NOTE: If you'd like to change your assignment, please email <a href="mailto:yfnkm@mit.edu">yfnkm@mit.edu</a> </p>
-    <div class="week2">
-    <h2>End of Semester Signup</h2>
-    {{if .Unauth}}<p style="font-style: italic;">(Log in with a certificate if you want to claim a slot)</p>{{end}}
+    {{if .Authorized}}
+      <p style="font-style: italic;">Hi, {{.Username}}</p>
+    {{else}}
+      <p style="font-style: italic;">(Log in with a certificate if you want to claim a slot)</p>
+    {{end}}
     <form action="/claim" method="POST">
-      <table>
-        <tr>
-          <th></th>
-          {{range .Days}}
-          <th>{{.}}</th>
-          {{end}}
-        </tr>
-        {{$ass := .Assignments}}
-        {{$unauth := .Unauth}}
-        {{range $duty := .Duties}}<tr><th>{{$duty}}</th>
-          {{range $dayindex, $assignee := (index $ass $duty)}}
-          <td>
-            {{if $assignee}}
-            <button disabled>{{$assignee}}</button>
-            {{else if $unauth}}
-            {{else}}
-            <button name="claim/{{$duty}}/{{$dayindex}}">Claim!</button>
+    {{range $week, $days := .Weeks}}
+      <div class="week">
+        <table>
+          <tr>
+            <th></th>
+            {{range $days}}
+            <th>{{index $.DayNames .}}</th>
             {{end}}
-          </td>
+          </tr>
+          {{range $duty := $.Duties}}
+          <tr>
+            <th>{{$duty}}</th>
+            {{range $dayindex := $days}}
+              <td>
+              {{$assignee := (index (index $.Assignments $duty) $dayindex)}}
+              {{if $assignee}}
+                {{if ne $assignee "_"}}
+                <button disabled>{{$assignee}}</button>
+                {{end}}
+              {{else if $.Authorized}}
+              <button name="claim/{{$duty}}/{{$dayindex}}">Claim!</button>
+              {{end}}
+              </td>
+            {{end}}
+          </tr>
           {{end}}
-        </tr>{{end}}
-      </table>
+          <tr class="attendance-row">
+            <th>
+              {{if $.Authorized}}
+              Will you be at dinner?
+              <button name="attends_submit" class="save">SAVE</button>
+              {{else}}
+              Planned attendance (an underestimate!)
+              {{end}}
+            </th>
+            {{range $dayindex := $days}}
+            <td>
+              {{if $.Authorized}}
+              <input type="checkbox" name="attend/{{$dayindex}}" value="true"
+                                                                 {{if (index $.CurrentUserPlannedAttendance $dayindex)}}checked{{end}}/>
+              {{end}}
+              {{index $.TotalAttendance $dayindex}}
+            </td>
+            {{end}}
+          </tr>
+        </table>
+      </div>
+    {{end}}
     </form>
-    </div>
-    <div class="current week1">
-    <h2>Week 1 schedule (Oct 31 - Nov 6, Nov 14 - Nov 20, Nov 28 - Dec 4)</h2>
-    <table>
-      <tr>
-        <th></th>
-        <th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Sunday</th>
-      </tr>
-      <tr>
-        <th>Big cook</th>
-        <td rowspan="2">Caroline H<br/>Hannah<br/>Samir</td><td>Sasha</td><td>Rachel</td><td>Madi</td><td>Val</td><td>Mads</td><td>Archana</td>
-      </tr><tr>
-        <th>Little cook</th>
-        <td>Andres</td><td>Aradhana</td><td>Femi</td><td>Miranda</td><td>Jaz</td><td>Danielle</td>
-      </tr><tr>
-        <th>Tiny cook</th>
-        <td></td><td></td><td>Jessica</td><td></td><td>John G</td><td></td><td></td>
-      </tr><tr>
-        <th>Cleaner 1</th>
-        <td>Laurence</td><td>Merry</td><td>Cathie</td><td>Joanna</td><td>Jack</td><td>Caroline M</td><td>Grant</td>
-      </tr><tr>
-        <th>Cleaner 2</th>
-        <td>Rebecca</td><td>Miranda</td><td>Meg</td><td>Yuxiao</td><td>Mika</td><td>Alejandro</td><td>Dirk</td>
-      </tr>
-    </table>
-    </div>
-    <div class="week2">
-    <h2>Week 2 schedule (Nov 7 - Nov 13, Nov 21 - Nov 27, Dec 5 - Dec 11)</h2>
-    <table>
-      <tr>
-        <th></th>
-        <th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Sunday</th>
-      </tr>
-
-      <tr>
-        <th>Big cook</th>
-        <td rowspan="2">Caroline H<br/>Hannah<br/>Samir</td><td>Sasha</td><td>Andres</td><td>Madi</td><td rowspan="2">Mads<br/>Rachel</td><td>Jade</td><td>Jaz</td>
-      </tr><tr>
-        <th>Little cook</th>
-        <td>Aradhana</td><td>Banti</td><td>Jonathan M</td><td>Sam</td><td>Archana</td>
-      </tr><tr>
-        <th>Tiny cook</th>
-        <td></td><td></td><td></td><td></td><td>Mehitabel</td><td></td><td></td>
-      </tr><tr>
-        <th>Cleaner 1</th>
-        <td>Laurence</td><td>Merry</td><td>Jonathan G-M</td><td>Caitlin</td><td>Val</td><td>Caroline M</td><td>Jack</td>
-      </tr><tr>
-        <th>Cleaner 2</th>
-        <td>Justin</td><td>Cathie</td><td>Alejandro</td><td>Rudy</td><td>Heather</td><td>Yuxiao</td><td>James</td>
-      </tr>
-    </table>
-    </div>
-    <p style="text-align:center;">
-    <b>Deep cleaner (half):</b> Joanna
-    </p>
-    <p style="text-align:center;">
-    <b>Fridge ninja:</b> Zach
-    </p>
-
-  <footer>
-    Problems? Need to trade a duty? Email <a href="mailto:yfnkm@mit.edu">yfnkm@mit.edu</a>
-  </footer>
   </body>
 </html>
