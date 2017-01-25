@@ -61,7 +61,7 @@ __group archive
 
 ## Users
 
-for user in kaufmand jadep ddoss asuhl universalis dmz; do
+for user in kaufmand jadep ddoss universalis dmz asuhl; do
     __user "$user" # --home and --create-home are not supported on FreeBSD
     require="__user/$user" \
       __directory "/home/$user" --owner "$user" --mode 0700
