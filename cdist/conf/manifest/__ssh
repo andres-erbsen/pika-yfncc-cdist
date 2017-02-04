@@ -8,6 +8,4 @@ __key_value ChallengeResponseAuthentication --value no --file /etc/ssh/sshd_conf
 __key_value PermitRootLogin --value prohibit-password --file /etc/ssh/sshd_config --delimiter ' '
 
 __directory /root/.ssh --owner root --mode 0700
-require="__directory/root/.ssh"
-  __file /root/.ssh/authorized_keys --owner root --mode 0600 \
-	--source "$__manifest/pubkeys/yfnccs"
+require="__directory/root/.ssh"  __file /root/.ssh/authorized_keys --owner root --mode 0600  --source "$__manifest/pubkeys/yfnccs"

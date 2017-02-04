@@ -19,6 +19,10 @@ __hostname
 
 . "${__manifest}/__ssh"
 
+# extra ssh access as user web (to push to the website repository)
+require="__directory/home/web" __directory /home/web/.ssh --owner web --mode 0700
+cat "$__manifest/pubkeys/yfnccs" | require="__directory/home/web/.ssh" __file /home/web/.ssh/authorized_keys --owner web --mode 0600 --source -
+
 # ## packet filtering
 # route incoming connections to user-mode services
 
@@ -54,8 +58,7 @@ __user web --home /home/web
 require="__user/web" __directory /home/web --owner web
 
 __package_pkg_openbsd git
-require="__directory/home/web" __git /home/web/pika-website --source https://github.com/andres-erbsen/pika-website --owner web
-# USAGE: to update this, change user to `web` and do `git pull --rebase`
+# SETUP: put website files in /home/web/pika-website
 
 require="__directory/home/web" __file /home/web/simple-https-server --owner web --source "$__manifest/bin/openbsd/simple-https-server" --mode 755
 require="__directory/home/web __file/home/web/simple-https-server" \
@@ -177,9 +180,9 @@ su wiki -c /home/wiki/gollum-proxy.sh &
 su wiki -c /home/wiki/public-wiki.sh &
 su mealplan -c /home/mealplan/run.sh &
 EOF
-# MANUALLY: su wiki
-# MANUALLY: cd
-# MANUALLY: gem install --user-install --no-document gollum github-markdown
+# SETUP: su wiki
+# SETUP: cd
+# SETUP: gem install --user-install --no-document gollum github-markdown
 # these steps may need to be repeated after every system upgrade --
 # some ruby gems are strongly tied to the versions of system
 # libraries that were present at the time they were installed.
