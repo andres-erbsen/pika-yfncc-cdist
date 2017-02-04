@@ -53,6 +53,31 @@ __directory /home --owner root --mode 755
 __group media
 __group archive
 
+# the archive directory will contain git repositories for the website, this
+# cdist config, and maybe the wiki. Repository SETUP:
+# 1. create the directory; cd into it
+# 2. git init .
+# 3. git config core.sharedRepository group
+# 4. git config receive.denyCurrentBranch updateInstead
+# Client SETUP example for a repository stored at pika-web, backup bogomips:
+# 1. git clone mykerberos@bogomips.mit.edu:/left/archive/pika-website
+# 2. git config --edit # and replace the "[remote]" sections with sth like
+#	[remote "all"]
+#		url = web@pika-web.mit.edu:/home/web/pika-website
+#		url = mykerberos@bogomips.mit.edu:/left/archive/pika-website
+#		fetch = +refs/heads/*:refs/remotes/web/*
+#	[remote "bogomips"]
+#		url = mykerberos@bogomips.mit.edu:/left/archive/pika-website
+#		fetch = +refs/heads/*:refs/remotes/bogomips/*
+#	[remote "web"]
+#		url = web@pika-web.mit.edu:/home/web/pika-website
+#		fetch = +refs/heads/*:refs/remotes/web/*
+#	[branch "master"]
+#		remote = all
+#		merge = refs/heads/master
+__package git
+
+
 # slow:
 # require="__group/media" \
 #   slow: __directory /left/media --recursive --owner root --group media --mode "ug=rwX,o="
@@ -61,7 +86,7 @@ __group archive
 
 ## Users
 
-for user in kaufmand jadep ddoss universalis dmz asuhl; do
+for user in kaufmand jadep ddoss universalis dmz asuhl andreser; do
     __user "$user" # --home and --create-home are not supported on FreeBSD
     require="__user/$user" \
       __directory "/home/$user" --owner "$user" --mode 0700
@@ -86,6 +111,11 @@ require="__user/kaufmand __group/media" \
 
 require="__user/dmz __group/archive" \
   __user_groups "dmz" --group archive
+
+require="__user/andreser __group/media __group/archive" \
+  __user_groups "andreser" --group media --group archive
+require="__user/andreser" \
+  __directory /left/backups/andreser --owner andreser --mode 700
 
 require="__user/universalis __group/media" \
   __user_groups "universalis" --group media
