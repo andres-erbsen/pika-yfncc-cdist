@@ -86,7 +86,7 @@ __package git
 
 ## Users
 
-for user in kaufmand jadep ddoss universalis dmz asuhl andreser; do
+for user in kaufmand jadep ddoss universalis dmz asuhl andreser jackreid; do
     __user "$user" # --home and --create-home are not supported on FreeBSD
     require="__user/$user" \
       __directory "/home/$user" --owner "$user" --mode 0700
@@ -111,6 +111,9 @@ require="__user/kaufmand __group/media" \
 
 require="__user/dmz __group/archive" \
   __user_groups "dmz" --group archive
+
+require="__user/jackreid __group/archive __group/archive" \
+  __user_groups "jackreid" --group media --group archive
 
 require="__user/andreser __group/media __group/archive" \
   __user_groups "andreser" --group media --group archive
