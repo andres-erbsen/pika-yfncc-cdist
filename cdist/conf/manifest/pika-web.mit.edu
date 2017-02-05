@@ -16,12 +16,33 @@ echo -e 'lookup file bind\nnameserver 18.72.0.3\nnameserver 18.70.0.160' | __fil
 __hostname
 
 # ## ssh
+# we use "git push" to update the website and backups
 
 . "${__manifest}/__ssh"
 
 # extra ssh access as user web (to push to the website repository)
 require="__directory/home/web" __directory /home/web/.ssh --owner web --mode 0700
 cat "$__manifest/pubkeys/yfnccs" | require="__directory/home/web/.ssh" __file /home/web/.ssh/authorized_keys --owner web --mode 0600 --source -
+
+# Example .git/config for pushing simultaneously to the web server and backups
+# [core]
+# 	repositoryformatversion = 0
+# 	filemode = true
+# 	bare = false
+# 	logallrefupdates = true
+# [remote "all"]
+# 	url = web@pika-web.mit.edu:/home/web/pika-website
+# 	url = andreser@bogomips.mit.edu:/left/archive/pika-website
+# 	fetch = +refs/heads/*:refs/remotes/web/*
+# [remote "bogomips"]
+# 	url = andreser@bogomips.mit.edu:/left/archive/pika-website
+# 	fetch = +refs/heads/*:refs/remotes/bogomips/*
+# [remote "web"]
+# 	url = web@pika-web.mit.edu:/home/web/pika-website
+# 	fetch = +refs/heads/*:refs/remotes/web/*
+# [branch "master"]
+# 	remote = all
+# 	merge = refs/heads/master
 
 # ## packet filtering
 # route incoming connections to user-mode services
