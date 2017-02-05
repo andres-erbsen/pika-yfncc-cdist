@@ -21,6 +21,8 @@
 #
 # The state of the dirves can be viewed by running "zpool status", detailed
 # information can be seen using "zfs get all".
+#
+# FreeBSD 11.0
 
 # hw.model: Intel(R) Xeon(R) CPU           X5560  @ 2.80GHz
 # hw.machine: amd64
@@ -86,7 +88,7 @@ __package git
 
 ## Users
 
-for user in kaufmand jadep ddoss universalis dmz asuhl andreser jackreid; do
+for user in kaufmand jadep ddoss universalis dmz asuhl andreser jackreid zach avientos yren2 rnations; do
     __user "$user" # --home and --create-home are not supported on FreeBSD
     require="__user/$user" \
       __directory "/home/$user" --owner "$user" --mode 0700
@@ -114,6 +116,18 @@ require="__user/dmz __group/archive" \
 
 require="__user/jackreid __group/archive __group/archive" \
   __user_groups "jackreid" --group media --group archive
+
+require="__user/zach __group/archive __group/archive" \
+  __user_groups "zach" --group media --group archive
+
+require="__user/avientos __group/archive __group/archive" \
+  __user_groups "avientos" --group media --group archive
+
+require="__user/yren2 __group/archive __group/archive" \
+  __user_groups "yren2" --group media --group archive
+
+require="__user/rnations __group/archive __group/archive" \
+  __user_groups "rnations" --group media --group archive
 
 require="__user/andreser __group/media __group/archive" \
   __user_groups "andreser" --group media --group archive
